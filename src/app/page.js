@@ -55,7 +55,7 @@ export default function Home() {
     <main className="overflow-x-hidden">
       {/* Hero Section */}
       <section id="find-lawyer" className="relative min-h-screen flex items-center justify-center pt-32 overflow-hidden bg-cover bg-center bg-fixed" style={{ 
-        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)), url("https://image.qwenlm.ai/public_source/704ad41d-7329-419f-bc5a-3bd7113d50ce/1bf9cd120-6f71-4f34-a7d9-460cbb227ca1.png")' 
+        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.6)), url("https://image.qwenlm.ai/public_source/704ad41d-7329-419f-bc5a-3bd7113d50ce/1bf9cd120-6f71-4f34-a7d9-460cbb227ca1.png")' 
       }}>
         <div className="container mx-auto px-4 relative z-10 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -337,43 +337,43 @@ export default function Home() {
       </section>
 
       {/* For Lawyers */}
-      <section id="lawyer-join" className="py-24 bg-white overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="bg-brand-dark rounded-[3rem] shadow-2xl overflow-hidden border border-white/10" data-aos="zoom-in">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="p-10 md:p-16 lg:p-20 flex flex-col justify-center">
-                <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-4">For Legal Professionals</span>
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-8 leading-tight">Grow Your Legal Practice With Us</h2>
-                <p className="text-slate-300 mb-10 text-lg leading-relaxed">Get high-quality leads daily, build your online brand, and focus on winning cases while we handle your growth.</p>
-                <ul className="space-y-5 mb-10">
-                  {[
-                    { t: "Get Verified Leads", d: "Receive genuine client inquiries on WhatsApp." },
-                    { t: "Website & SEO Package", d: "Get a premium website to rank on Google." },
-                    { t: "Digital Branding", d: "Optimize your online presence and authority." }
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
-                        <i className="fas fa-check"></i>
-                      </div>
-                      <div>
-                        <strong className="text-white block text-lg">{item.t}</strong>
-                        <span className="text-slate-400 text-sm">{item.d}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button onClick={() => selectUserType('lawyer')} className="btn-gold text-brand-dark px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl">Join as Lawyer Now</button>
-                  <a href="https://wa.me/918261889815" className="bg-white/10 hover:bg-white/20 backdrop-blur text-white px-10 py-5 rounded-2xl font-bold flex items-center justify-center gap-3 border border-white/20">
-                    <i className="fab fa-whatsapp text-2xl"></i> Chat on WhatsApp
-                  </a>
-                </div>
-              </div>
-              <div className="relative h-96 lg:h-auto bg-brand-gold/10 overflow-hidden">
-                <img src="https://image.qwenlm.ai/public_source/704ad41d-7329-419f-bc5a-3bd7113d50ce/1bf9cd120-6f71-4f34-a7d9-460cbb227ca1.png" alt="Lawyer Growth" className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" />
-                <div className="absolute inset-0 bg-gradient-to-l from-brand-dark/0 via-brand-dark/50 to-brand-dark"></div>
-              </div>
+      <section id="lawyer-join" className="bg-brand-dark overflow-hidden w-full" data-aos="fade-up">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
+          <div className="p-10 md:p-20 lg:p-24 xl:p-32 flex flex-col justify-center">
+            <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-4">For Legal Professionals</span>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-8 leading-tight">Grow Your Legal Practice With Us</h2>
+            <p className="text-slate-300 mb-10 text-lg leading-relaxed">Get high-quality leads daily, build your online brand, and focus on winning cases while we handle your growth.</p>
+            <ul className="space-y-5 mb-10">
+              {[
+                { t: "Get Verified Leads", d: "Receive genuine client inquiries on WhatsApp." },
+                { t: "Website & SEO Package", d: "Get a premium website to rank on Google." },
+                { t: "Digital Branding", d: "Optimize your online presence and authority." }
+              ].map((item, idx) => (
+                <li key={idx} className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                    <i className="fas fa-check"></i>
+                  </div>
+                  <div>
+                    <strong className="text-white block text-lg">{item.t}</strong>
+                    <span className="text-slate-400 text-sm">{item.d}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button onClick={() => selectUserType('lawyer')} className="btn-gold text-brand-dark px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl">Join as Lawyer Now</button>
+              <a href="https://wa.me/918261889815" className="bg-white/10 hover:bg-white/20 backdrop-blur text-white px-10 py-5 rounded-2xl font-bold flex items-center justify-center gap-3 border border-white/20">
+                <i className="fab fa-whatsapp text-2xl"></i> Chat on WhatsApp
+              </a>
             </div>
+          </div>
+          <div className="relative min-h-[400px] lg:min-h-full bg-slate-900 overflow-hidden">
+            <img 
+              src="https://image.qwenlm.ai/public_source/704ad41d-7329-419f-bc5a-3bd7113d50ce/1bf9cd120-6f71-4f34-a7d9-460cbb227ca1.png" 
+              alt="Lawyer Growth" 
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-90 transition-all duration-700" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-brand-dark/0 via-brand-dark/20 to-brand-dark/90 lg:bg-gradient-to-l lg:from-transparent lg:via-brand-dark/10 lg:to-brand-dark"></div>
           </div>
         </div>
       </section>
