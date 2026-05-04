@@ -21,8 +21,8 @@ export async function getPostById(id) {
 export async function createPost(post) {
   const sql = getSql();
   return await sql`
-    INSERT INTO posts (title, content, image, type, category, date)
-    VALUES (${post.title}, ${post.content}, ${post.image}, ${post.type}, ${post.category}, ${post.date})
+    INSERT INTO posts (title, content, image, type, category, date, author)
+    VALUES (${post.title}, ${post.content}, ${post.image}, ${post.type}, ${post.category}, ${post.date}, ${post.author || 'Editorial Team'})
     RETURNING *
   `;
 }
@@ -30,6 +30,21 @@ export async function createPost(post) {
 export async function deletePost(id) {
   const sql = getSql();
   return await sql`DELETE FROM posts WHERE id = ${id}`;
+}
+
+export async function updatePost(id, post) {
+  const sql = getSql();
+  return await sql`
+    UPDATE posts 
+    SET title = ${post.title}, 
+        content = ${post.content}, 
+        image = ${post.image}, 
+        type = ${post.type}, 
+        category = ${post.category},
+        author = ${post.author || 'Editorial Team'}
+    WHERE id = ${id}
+    RETURNING *
+  `;
 }
 
 // Export raw sql for migrations/setup

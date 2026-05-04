@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="text-white pt-16 pb-8">
+    <footer className="bg-brand-dark text-white pt-16 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Info */}
@@ -40,10 +40,10 @@ export default function Footer() {
             <h4 className="text-lg font-bold mb-6 text-brand-gold">Quick Links</h4>
             <ul className="space-y-3 text-slate-400 text-sm">
               <li><Link href="/#find-lawyer" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> Find a Lawyer</Link></li>
+              <li><Link href="/blog" className="hover:text-brand-gold flex items-center gap-2 font-bold text-slate-300"><i className="fas fa-chevron-right text-xs"></i> Legal Articles</Link></li>
               <li><Link href="/#practice-areas" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> Practice Areas</Link></li>
               <li><Link href="/#how-it-works" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> How It Works</Link></li>
               <li><Link href="/#testimonials" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> Testimonials</Link></li>
-              <li><Link href="/#lawyer-join" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> For Lawyers</Link></li>
               <li><Link href="/#about" className="hover:text-brand-gold flex items-center gap-2"><i className="fas fa-chevron-right text-xs"></i> About Us</Link></li>
             </ul>
           </div>

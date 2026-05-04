@@ -42,48 +42,62 @@ export default async function BlogPage() {
         </div>
 
         {/* Blog Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {posts.length === 0 ? (
-            <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-newspaper text-slate-300 text-2xl"></i>
+            <div className="col-span-full text-center py-24 bg-white rounded-[3rem] border border-slate-200 shadow-sm">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i className="fas fa-newspaper text-slate-200 text-3xl"></i>
               </div>
-              <p className="text-slate-400">No posts available yet. Please add some from the admin panel.</p>
-              <Link href="/admin" className="mt-4 inline-block text-brand-blue font-bold hover:underline">Go to Admin Panel</Link>
+              <h3 className="text-2xl font-bold text-brand-dark mb-2">No Articles Yet</h3>
+              <p className="text-slate-400 mb-8">We're currently drafting new legal insights for you.</p>
+              <Link href="/admin" className="btn-gold text-brand-dark px-10 py-4 rounded-2xl font-bold transition-all inline-block shadow-lg">
+                <i className="fas fa-plus mr-2"></i> Create First Post
+              </Link>
             </div>
           ) : (
-            posts.map((post) => (
+            posts.map((post, idx) => (
               <Link 
                 key={post.id} 
                 href={`/blog/${post.id}`}
-                className="group bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full"
+                className="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:-translate-y-2 hover:scale-[1.02] flex flex-col h-full"
                 data-aos="fade-up"
+                data-aos-delay={idx * 100}
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-64 overflow-hidden">
                   <img 
-                    src={post.image || 'https://via.placeholder.com/800x400'} 
+                    src={post.image || 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80'} 
                     alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${post.type === 'blog' ? 'bg-blue-500 text-white' : 'bg-brand-gold text-brand-dark'}`}>
+                  <div className="absolute top-6 left-6">
+                    <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg ${post.type === 'blog' ? 'bg-brand-blue text-white' : 'bg-brand-gold text-brand-dark'}`}>
                       {post.type}
                     </span>
                   </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
-                <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-bold text-brand-blue uppercase tracking-wider">{post.category}</span>
+                <div className="p-10 flex flex-col flex-grow">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs font-bold text-brand-blue uppercase tracking-[0.2em]">{post.category}</span>
+                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                    <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">{post.date}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-brand-dark mb-3 line-clamp-2 group-hover:text-brand-blue transition-colors">
+                  <h3 className="text-2xl font-bold text-brand-dark mb-4 leading-tight group-hover:text-brand-blue transition-colors duration-300">
                     {post.title}
                   </h3>
-                  <p className="text-slate-500 text-sm line-clamp-3 mb-6">
+                  <p className="text-slate-500 text-sm line-clamp-3 mb-8 leading-relaxed">
                     {post.content}
                   </p>
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="text-xs text-slate-400 font-medium">{post.date}</span>
-                    <span className="text-brand-blue font-bold text-sm">Read More <i className="fas fa-arrow-right ml-1 text-xs"></i></span>
+                  <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-brand-dark text-[10px]">
+                        <i className="fas fa-user-tie"></i>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.author || 'Editorial Team'}</span>
+                    </div>
+                    <span className="text-brand-blue font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                      Read Article <i className="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                    </span>
                   </div>
                 </div>
               </Link>

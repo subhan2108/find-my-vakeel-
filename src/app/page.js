@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
   const [userType, setUserType] = useState('client');
   const [activeFaq, setActiveFaq] = useState(null);
   const [step, setStep] = useState(1);
+  const [posts, setPosts] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -14,6 +15,22 @@ export default function Home() {
     legalIssue: '',
     message: ''
   });
+
+  useEffect(() => {
+    fetchLatestPosts();
+  }, []);
+
+  const fetchLatestPosts = async () => {
+    try {
+      const res = await fetch('/api/posts');
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.slice(0, 3));
+      }
+    } catch (err) {
+      console.error('Failed to fetch latest posts:', err);
+    }
+  };
 
   const nextStep = () => {
     if (step === 1 && !formData.name) {
@@ -70,7 +87,7 @@ export default function Home() {
     <main className="overflow-x-hidden">
       {/* Hero Section */}
       <section id="find-lawyer" className="relative min-h-screen flex items-center justify-center pt-32 overflow-hidden bg-cover bg-center bg-fixed" style={{ 
-        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.6)), url("https://image.qwenlm.ai/public_source/704ad41d-7329-419f-bc5a-3bd7113d50ce/1bf9cd120-6f71-4f34-a7d9-460cbb227ca1.png")' 
+        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.6)), url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80")' 
       }}>
         <div className="container mx-auto px-4 relative z-10 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -364,9 +381,9 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { n: "Rajesh Kumar", l: "Delhi", t: "Find My Vakeel connected me with an excellent criminal lawyer. The free consultation helped me understand my options.", i: "RK", c: "brand-blue" },
-              { n: "Anita Sharma", l: "Mumbai", t: "The family lawyer I found was compassionate and professional. Got a fair settlement. Thank you!", i: "AS", c: "pink-600" },
-              { n: "Vikram Patel", l: "Bangalore", t: "As a business owner, I needed a corporate lawyer urgently. Find My Vakeel connected me within hours.", i: "VP", c: "green-600" }
+              { n: "Rajesh Kumar", l: "Delhi", t: "Find My Vakeel connected me with an excellent criminal lawyer. The free consultation helped me understand my options.", i: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
+              { n: "Anita Sharma", l: "Mumbai", t: "The family lawyer I found was compassionate and professional. Got a fair settlement. Thank you!", i: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150" },
+              { n: "Vikram Patel", l: "Bangalore", t: "As a business owner, I needed a corporate lawyer urgently. Find My Vakeel connected me within hours.", i: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" }
             ].map((test, idx) => (
               <div key={idx} className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:-translate-y-2 hover:scale-105 border border-transparent hover:border-brand-gold" data-aos="fade-up" data-aos-delay={idx * 100}>
                 <div className="flex items-center gap-1 mb-6">
@@ -374,7 +391,9 @@ export default function Home() {
                 </div>
                 <p className="text-slate-600 mb-8 italic leading-relaxed">"{test.t}"</p>
                 <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-full bg-${test.c} flex items-center justify-center text-white font-bold shadow-lg`}>{test.i}</div>
+                  <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg border-2 border-white">
+                    <img src={test.i} className="w-full h-full object-cover" alt={test.n} />
+                  </div>
                   <div>
                     <p className="font-bold text-brand-dark">{test.n}</p>
                     <p className="text-slate-500 text-sm">{test.l}</p>
@@ -556,25 +575,32 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {[
-              { id: 1, title: "How to File for Mutual Divorce in India", category: "Family Law", date: "Oct 25, 2024", img: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=800" },
-              { id: 2, title: "Understanding Property Rights in India", category: "Property Law", date: "Oct 22, 2024", img: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800" },
-              { id: 3, title: "5 Steps to Take After a Civil FIR", category: "Criminal Law", date: "Oct 20, 2024", img: "https://images.unsplash.com/photo-1453948574357-74e7d1d19d8b?auto=format&fit=crop&q=80&w=800" }
-            ].map((blog, i) => (
-              <Link href={`/blog/${blog.id}`} key={i} className="group bg-white rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:scale-105 hover:-translate-y-2 border border-slate-100" data-aos="fade-up" data-aos-delay={i * 100}>
-                <div className="relative h-72 overflow-hidden">
-                  <img src={blog.img} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute top-6 left-6 bg-brand-gold text-brand-dark text-xs font-black px-4 py-2 rounded-full shadow-lg uppercase tracking-widest">{blog.category}</div>
+            {posts.length === 0 ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="bg-slate-50 rounded-[2rem] h-96 animate-pulse border border-slate-100 flex items-center justify-center">
+                   <p className="text-slate-300 font-bold uppercase tracking-widest text-xs">Waiting for Insights...</p>
                 </div>
-                <div className="p-10">
-                  <div className="text-slate-400 text-xs mb-4 font-bold uppercase tracking-widest">{blog.date}</div>
-                  <h3 className="text-2xl font-bold text-brand-dark mb-6 leading-tight group-hover:text-brand-blue transition-colors">{blog.title}</h3>
-                  <div className="flex items-center gap-3 text-brand-blue font-bold text-sm">
-                    Read Full Insight <i className="fas fa-arrow-right text-xs"></i>
+              ))
+            ) : (
+              posts.map((blog, i) => (
+                <Link href={`/blog/${blog.id}`} key={i} className="group bg-white rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:scale-105 hover:-translate-y-2 border border-slate-100" data-aos="fade-up" data-aos-delay={i * 100}>
+                  <div className="relative h-72 overflow-hidden">
+                    <img src={blog.image || 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=800'} alt={blog.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute top-6 left-6 bg-brand-gold text-brand-dark text-[10px] font-black px-4 py-2 rounded-full shadow-lg uppercase tracking-widest">{blog.category}</div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="p-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{blog.date}</div>
+                      <div className="text-brand-blue text-[10px] font-black uppercase tracking-widest">{blog.author || 'Editorial Team'}</div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-brand-dark mb-6 leading-tight group-hover:text-brand-blue transition-colors line-clamp-2">{blog.title}</h3>
+                    <div className="flex items-center gap-3 text-brand-blue font-black text-xs uppercase tracking-widest">
+                      Read Full Insight <i className="fas fa-arrow-right text-[10px]"></i>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>

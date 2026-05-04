@@ -8,6 +8,8 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const isHomePage = pathname === '/';
+  const displayScrolled = isHomePage ? isScrolled : true;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,7 +20,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`fixed w-full top-0 z-50 transition-all duration-500 ${isScrolled ? 'glass-nav shadow-lg py-3' : 'bg-transparent py-6'}`}>
+    <header className={`fixed w-full top-0 z-50 transition-all duration-500 ${displayScrolled ? 'glass-nav shadow-lg py-3' : 'bg-transparent py-6'}`}>
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between gap-4">
           {/* Logo (Left) */}
@@ -28,10 +30,10 @@ export default function Header() {
                 <i className="fas fa-scale-balanced"></i>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className={`text-sm md:text-2xl font-bold font-serif leading-tight truncate transition-colors ${isScrolled ? 'text-brand-dark' : 'text-white'}`}>
-                  Find My <span className={isScrolled ? 'text-gradient' : 'text-brand-gold'}>Vakeel</span>
+                <span className={`text-sm md:text-2xl font-bold font-serif leading-tight truncate transition-colors ${displayScrolled ? 'text-brand-dark' : 'text-white'}`}>
+                  Find My <span className={displayScrolled ? 'text-gradient' : 'text-brand-gold'}>Vakeel</span>
                 </span>
-                <span className={`text-[7px] md:text-[10px] uppercase tracking-tighter md:tracking-widest truncate transition-colors ${isScrolled ? 'text-brand-slate' : 'text-slate-300'}`}>
+                <span className={`text-[7px] md:text-[10px] uppercase tracking-tighter md:tracking-widest truncate transition-colors ${displayScrolled ? 'text-brand-slate' : 'text-slate-300'}`}>
                   India's Legal Marketplace
                 </span>
               </div>
@@ -51,7 +53,7 @@ export default function Header() {
               <Link 
                 key={link.label}
                 href={link.href} 
-                className={`px-4 py-2 font-semibold text-sm transition-all rounded-full hover:bg-white/10 ${isScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`}
+                className={`px-4 py-2 font-semibold text-sm transition-all rounded-full hover:bg-white/10 ${displayScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`}
               >
                 {link.label}
               </Link>
@@ -61,7 +63,7 @@ export default function Header() {
           {/* Actions (Right) */}
           <div className="flex-1 flex justify-end items-center gap-3 md:gap-6">
             <div className="hidden lg:flex items-center gap-6">
-              <a href="https://wa.me/918261889815" className={`font-bold flex items-center gap-2 transition-colors ${isScrolled ? 'text-brand-blue hover:text-brand-navy' : 'text-white hover:text-brand-gold'}`}>
+              <a href="https://wa.me/918261889815" className={`font-bold flex items-center gap-2 transition-colors ${displayScrolled ? 'text-brand-blue hover:text-brand-navy' : 'text-white hover:text-brand-gold'}`}>
                 <i className="fab fa-whatsapp text-xl"></i> 
                 <span className="hidden xl:inline">WhatsApp</span>
               </a>
@@ -71,12 +73,12 @@ export default function Header() {
             </div>
             
             <button 
-              className={`xl:hidden p-3 rounded-xl transition-all ${isScrolled ? 'bg-slate-100 text-brand-dark' : 'bg-white/10 text-white'} ${isMenuOpen ? 'is-active' : ''}`}
+              className={`xl:hidden p-3 rounded-xl transition-all ${displayScrolled ? 'bg-slate-100 text-brand-dark' : 'bg-white/10 text-white'} ${isMenuOpen ? 'is-active' : ''}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu"
             >
               <span className="hamburger-box">
-                <span className={`hamburger-inner ${!isScrolled ? 'bg-white before:bg-white after:bg-white' : 'bg-brand-dark before:bg-brand-dark after:bg-brand-dark'}`}></span>
+                <span className={`hamburger-inner ${!displayScrolled ? 'bg-white before:bg-white after:bg-white' : 'bg-brand-dark before:bg-brand-dark after:bg-brand-dark'}`}></span>
               </span>
             </button>
           </div>
