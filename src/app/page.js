@@ -6,6 +6,7 @@ import Link from 'next/link';
 export default function Home() {
   const [userType, setUserType] = useState('client');
   const [activeFaq, setActiveFaq] = useState(null);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -13,6 +14,20 @@ export default function Home() {
     legalIssue: '',
     message: ''
   });
+
+  const nextStep = () => {
+    if (step === 1 && !formData.name) {
+      alert("Please enter your name to continue");
+      return;
+    }
+    if (step === 2 && (!formData.phone || !formData.city)) {
+      alert("Please fill in your contact details");
+      return;
+    }
+    setStep(prev => prev + 1);
+  };
+
+  const prevStep = () => setStep(prev => prev - 1);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,86 +100,121 @@ export default function Home() {
             </div>
 
             <div data-aos="fade-left" data-aos-delay="200">
-              <div className="glass-hero rounded-[2.5rem] shadow-2xl p-8 md:p-10 border border-white/20 backdrop-blur-2xl bg-slate-900/40">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-serif font-bold text-white mb-2">Get Free Legal Consultation</h2>
-                  <p className="text-slate-300 text-sm">Fill the form & we'll connect you on WhatsApp instantly!</p>
+              <div className="glass-hero rounded-[2.5rem] shadow-2xl p-8 md:p-10 border border-white/20 backdrop-blur-2xl bg-slate-900/40 relative overflow-hidden">
+                {/* Progress Line */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-white/10">
+                  <div 
+                    className="h-full bg-gradient-to-r from-brand-gold to-yellow-200 transition-all duration-500 ease-out"
+                    style={{ width: `${(step / 3) * 100}%` }}
+                  ></div>
                 </div>
+
+                <div className="text-center mb-8 pt-4">
+                  <h2 className="text-3xl font-serif font-bold text-white mb-2">
+                    {step === 1 && "Start Your Consultation"}
+                    {step === 2 && "Contact Details"}
+                    {step === 3 && "Final Step"}
+                  </h2>
+                  <p className="text-slate-300 text-sm">Step {step} of 3</p>
+                </div>
+
                 <form onSubmit={submitToWhatsApp}>
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div 
-                      className={`cursor-pointer p-6 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 ${userType === 'client' ? 'border-brand-gold bg-brand-gold/20' : 'border-slate-700 bg-slate-800/50'}`}
-                      onClick={() => selectUserType('client')}
-                    >
-                      <i className={`fas fa-user text-3xl ${userType === 'client' ? 'text-brand-gold' : 'text-slate-500'}`}></i>
-                      <p className={`font-bold text-lg ${userType === 'client' ? 'text-white' : 'text-slate-400'}`}>I'm a Client</p>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Need Legal Help</p>
-                    </div>
-                    <div 
-                      className={`cursor-pointer p-6 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 ${userType === 'lawyer' ? 'border-brand-gold bg-brand-gold/20' : 'border-slate-700 bg-slate-800/50'}`}
-                      onClick={() => selectUserType('lawyer')}
-                    >
-                      <i className={`fas fa-user-tie text-3xl ${userType === 'lawyer' ? 'text-brand-gold' : 'text-slate-500'}`}></i>
-                      <p className={`font-bold text-lg ${userType === 'lawyer' ? 'text-white' : 'text-slate-400'}`}>I'm a Lawyer</p>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-tighter">Want More Clients</p>
-                    </div>
-                  </div>
+                  {step === 1 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="grid grid-cols-2 gap-4 mb-2">
+                        <div 
+                          className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 ${userType === 'client' ? 'border-brand-gold bg-brand-gold/20' : 'border-slate-700 bg-slate-800/50'}`}
+                          onClick={() => selectUserType('client')}
+                        >
+                          <i className={`fas fa-user text-2xl ${userType === 'client' ? 'text-brand-gold' : 'text-slate-500'}`}></i>
+                          <p className={`font-bold text-sm ${userType === 'client' ? 'text-white' : 'text-slate-400'}`}>I'm a Client</p>
+                        </div>
+                        <div 
+                          className={`cursor-pointer p-4 rounded-2xl border-2 transition-all text-center flex flex-col items-center justify-center gap-1 ${userType === 'lawyer' ? 'border-brand-gold bg-brand-gold/20' : 'border-slate-700 bg-slate-800/50'}`}
+                          onClick={() => selectUserType('lawyer')}
+                        >
+                          <i className={`fas fa-user-tie text-2xl ${userType === 'lawyer' ? 'text-brand-gold' : 'text-slate-500'}`}></i>
+                          <p className={`font-bold text-sm ${userType === 'lawyer' ? 'text-white' : 'text-slate-400'}`}>I'm a Lawyer</p>
+                        </div>
+                      </div>
 
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-bold flex items-center gap-2">
-                        <i className="fas fa-user text-brand-gold"></i> Full Name *
-                      </label>
-                      <input type="text" name="name" placeholder="Enter your full name" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.name} onChange={handleInputChange} />
+                      <div className="space-y-2">
+                        <label className="text-white text-sm font-bold flex items-center gap-2">
+                          <i className="fas fa-user text-brand-gold"></i> Full Name *
+                        </label>
+                        <input type="text" name="name" placeholder="Enter your full name" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.name} onChange={handleInputChange} />
+                      </div>
+
+                      <button type="button" onClick={nextStep} className="w-full bg-brand-gold hover:bg-yellow-500 text-brand-dark py-5 rounded-2xl font-bold text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                        Continue <i className="fas fa-arrow-right"></i>
+                      </button>
                     </div>
+                  )}
 
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-bold flex items-center gap-2">
-                        <i className="fas fa-phone text-brand-gold"></i> Phone Number *
-                      </label>
-                      <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.phone} onChange={handleInputChange} />
+                  {step === 2 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="space-y-2">
+                        <label className="text-white text-sm font-bold flex items-center gap-2">
+                          <i className="fas fa-phone text-brand-gold"></i> Phone Number *
+                        </label>
+                        <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.phone} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-white text-sm font-bold flex items-center gap-2">
+                          <i className="fas fa-location-dot text-brand-gold"></i> City *
+                        </label>
+                        <input type="text" name="city" placeholder="Enter your city" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.city} onChange={handleInputChange} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <button type="button" onClick={prevStep} className="bg-white/10 hover:bg-white/20 text-white py-5 rounded-2xl font-bold transition-all">Back</button>
+                        <button type="button" onClick={nextStep} className="bg-brand-gold hover:bg-yellow-500 text-brand-dark py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-2">
+                          Next <i className="fas fa-arrow-right"></i>
+                        </button>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-bold flex items-center gap-2">
-                        <i className="fas fa-location-dot text-brand-gold"></i> City *
-                      </label>
-                      <input type="text" name="city" placeholder="Enter your city" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none placeholder:text-slate-400" value={formData.city} onChange={handleInputChange} />
+                  {step === 3 && (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="space-y-2">
+                        <label className="text-white text-sm font-bold flex items-center gap-2">
+                          <i className="fas fa-briefcase text-brand-gold"></i> Legal Issue *
+                        </label>
+                        <select name="legalIssue" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none" value={formData.legalIssue} onChange={handleInputChange}>
+                          <option value="">Select your legal issue</option>
+                          <option value="Family Law & Divorce">Family Law & Divorce</option>
+                          <option value="Criminal Defense">Criminal Defense</option>
+                          <option value="Property & Real Estate">Property & Real Estate</option>
+                          <option value="Corporate & Business">Corporate & Business</option>
+                          <option value="Civil Matters">Civil Matters</option>
+                          <option value="Consumer Court">Consumer Court</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-white text-sm font-bold flex items-center gap-2">
+                          <i className="fas fa-comment-dots text-brand-gold"></i> Brief Message
+                        </label>
+                        <textarea name="message" placeholder="Briefly describe your legal issue..." className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none h-24 resize-none placeholder:text-slate-400" value={formData.message} onChange={handleInputChange}></textarea>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
+                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-bold text-xl shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 group">
+                          <i className="fab fa-whatsapp text-2xl group-hover:animate-bounce"></i>
+                          Send via WhatsApp
+                        </button>
+                        <button type="button" onClick={prevStep} className="text-slate-400 hover:text-white text-sm font-bold transition-all">Go back to edit info</button>
+                      </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-bold flex items-center gap-2">
-                        <i className="fas fa-briefcase text-brand-gold"></i> Legal Issue *
-                      </label>
-                      <select name="legalIssue" required className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none" value={formData.legalIssue} onChange={handleInputChange}>
-                        <option value="">Select your legal issue</option>
-                        <option value="Family Law & Divorce">Family Law & Divorce</option>
-                        <option value="Criminal Defense">Criminal Defense</option>
-                        <option value="Property & Real Estate">Property & Real Estate</option>
-                        <option value="Corporate & Business">Corporate & Business</option>
-                        <option value="Civil Matters">Civil Matters</option>
-                        <option value="Consumer Court">Consumer Court</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-white text-sm font-bold flex items-center gap-2">
-                        <i className="fas fa-comment-dots text-brand-gold"></i> Brief Message
-                      </label>
-                      <textarea name="message" placeholder="Briefly describe your legal issue..." className="w-full bg-slate-100 border-none rounded-xl px-5 py-4 text-brand-dark focus:ring-2 focus:ring-brand-gold outline-none h-24 resize-none placeholder:text-slate-400" value={formData.message} onChange={handleInputChange}></textarea>
-                    </div>
-
-                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl font-bold text-xl shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95 group">
-                      <i className="fab fa-whatsapp text-2xl group-hover:animate-bounce"></i>
-                      Send via WhatsApp
-                    </button>
-
-                    <p className="text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-                      <i className="fas fa-lock text-brand-gold"></i> Your information is 100% secure
-                    </p>
-                  </div>
+                  )}
                 </form>
+
+                <p className="mt-6 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+                  <i className="fas fa-lock text-brand-gold"></i> Your information is 100% secure
+                </p>
               </div>
             </div>
           </div>
