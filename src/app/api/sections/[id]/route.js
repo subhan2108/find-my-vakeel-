@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const updatedSection = await updateSection(id, body);
     return NextResponse.json(updatedSection);

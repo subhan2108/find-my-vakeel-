@@ -9,6 +9,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('posts');
   const [editingId, setEditingId] = useState(null);
+  const [expandedSection, setExpandedSection] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -112,27 +113,23 @@ export default function AdminPage() {
     }
   };
 
-  const updateSectionTitle = async (section, newName) => {
-    try {
-      const updatedSection = { ...section, name: newName };
-      const res = await fetch(`/api/sections/${section.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedSection)
+  const handleSectionUpdate = async (e, section) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newName = formData.get('section_name');
+    
+    const updatedContent = { ...section.content };
+    if (section.content) {
+      Object.keys(section.content).forEach(key => {
+        const val = formData.get(key);
+        if (val !== null) {
+          updatedContent[key] = val;
+        }
       });
-      if (res.ok) {
-        fetchSections();
-        alert('Section updated successfully');
-      }
-    } catch (err) {
-      alert('Failed to update section');
     }
-  };
 
-  const updateSectionContent = async (section, contentKey, contentValue) => {
     try {
-      const updatedContent = { ...section.content, [contentKey]: contentValue };
-      const updatedSection = { ...section, content: updatedContent };
+      const updatedSection = { ...section, name: newName, content: updatedContent };
       const res = await fetch(`/api/sections/${section.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -140,9 +137,12 @@ export default function AdminPage() {
       });
       if (res.ok) {
         setSections(sections.map(s => s.id === section.id ? updatedSection : s));
+        alert('Section updated successfully');
+      } else {
+        alert('Failed to update section');
       }
     } catch (err) {
-      alert('Failed to update content');
+      alert('Failed to update section');
     }
   };
 
@@ -407,58 +407,73 @@ export default function AdminPage() {
                 <div className="text-center p-8 text-slate-400">No sections found. Make sure the database is set up and the homepage has been loaded at least once.</div>
               ) : (
                 sections.map((section) => (
-                  <div key={section.id} className="flex flex-col p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors gap-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="font-bold text-brand-dark text-lg">{section.id.replace(/-/g, ' ').toUpperCase()}</span>
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${section.is_visible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {section.is_visible ? 'Visible' : 'Hidden'}
-                          </span>
-                        </div>
-                        <input 
-                          type="text" 
-                          defaultValue={section.name}
-                          onBlur={(e) => {
-                            if (e.target.value !== section.name) {
-                              updateSectionTitle(section, e.target.value);
-                            }
-                          }}
-                          className="w-full max-w-md border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none"
-                          placeholder="Admin Label (e.g. Hero Section)"
-                        />
+                  <div key={section.id} className="flex flex-col border border-slate-200 rounded-xl overflow-hidden bg-white transition-all shadow-sm">
+                    {/* Header (Always Visible) */}
+                    <div 
+                      className="flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
+                      onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-brand-dark text-lg">{section.id.replace(/-/g, ' ').toUpperCase()}</span>
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${section.is_visible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {section.is_visible ? 'Visible' : 'Hidden'}
+                        </span>
                       </div>
-                      <div className="flex shrink-0">
+                      <div className="flex items-center gap-4">
                         <button 
-                          onClick={() => toggleSectionVisibility(section)}
-                          className={`px-4 py-2 rounded font-bold text-sm transition-colors ${section.is_visible ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSectionVisibility(section);
+                          }}
+                          className={`px-3 py-1.5 rounded font-bold text-xs transition-colors ${section.is_visible ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-green-500 text-white hover:bg-green-600'}`}
                         >
-                          {section.is_visible ? 'Hide Section' : 'Show Section'}
+                          {section.is_visible ? 'Hide' : 'Show'}
                         </button>
+                        <i className={`fas fa-chevron-down transition-transform ${expandedSection === section.id ? 'rotate-180' : ''} text-slate-400`}></i>
                       </div>
                     </div>
-                    {/* Content Editor */}
-                    {section.content && Object.keys(section.content).length > 0 && (
-                      <div className="bg-white border border-slate-200 p-4 rounded-lg mt-2">
-                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Edit Content Text</h4>
-                        <div className="space-y-3">
-                          {Object.entries(section.content).map(([key, value]) => (
-                            <div key={key}>
-                              <label className="block text-xs font-bold text-slate-600 capitalize mb-1">{key}</label>
-                              <textarea 
-                                defaultValue={value}
-                                onBlur={(e) => {
-                                  if (e.target.value !== value) {
-                                    updateSectionContent(section, key, e.target.value);
-                                  }
-                                }}
-                                className="w-full border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none resize-y min-h-[40px]"
-                                rows={value.length > 50 ? 3 : 1}
-                              />
-                            </div>
-                          ))}
+
+                    {/* Expandable Content Form */}
+                    {expandedSection === section.id && (
+                      <form onSubmit={(e) => handleSectionUpdate(e, section)} className="p-6 border-t border-slate-200 bg-white">
+                        <div className="mb-6">
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Admin Label</label>
+                          <input 
+                            type="text" 
+                            name="section_name"
+                            defaultValue={section.name}
+                            className="w-full max-w-md border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none"
+                            placeholder="Admin Label (e.g. Hero Section)"
+                          />
                         </div>
-                      </div>
+
+                        {section.content && Object.keys(section.content).length > 0 && (
+                          <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl">
+                            <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 border-b border-slate-200 pb-2">Edit Content Text</h4>
+                            <div className="grid grid-cols-1 gap-4">
+                              {Object.entries(section.content).map(([key, value]) => (
+                                <div key={key}>
+                                  <label className="block text-[11px] font-black text-slate-600 mb-1 tracking-wider">
+                                    {key.replace(/_/g, ' ').toUpperCase()}
+                                  </label>
+                                  <textarea 
+                                    name={key}
+                                    defaultValue={value}
+                                    className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none resize-y min-h-[40px] shadow-sm bg-white"
+                                    rows={value.length > 80 ? 3 : 1}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-8 flex justify-end border-t border-slate-100 pt-6">
+                          <button type="submit" className="bg-brand-gold hover:bg-yellow-500 text-brand-dark px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2">
+                            <i className="fas fa-save"></i> Save Changes
+                          </button>
+                        </div>
+                      </form>
                     )}
                   </div>
                 ))
