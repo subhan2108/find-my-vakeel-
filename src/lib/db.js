@@ -47,6 +47,33 @@ export async function updatePost(id, post) {
   `;
 }
 
+export async function getSections() {
+  const sql = getSql();
+  // Create table if it doesn't exist
+  await sql`
+    CREATE TABLE IF NOT EXISTS homepage_sections (
+      id VARCHAR(50) PRIMARY KEY,
+      name TEXT NOT NULL,
+      is_visible BOOLEAN DEFAULT true,
+      content JSONB
+    )
+  `;
+  return await sql`SELECT * FROM homepage_sections ORDER BY id ASC`;
+}
+
+export async function updateSection(id, data) {
+  const sql = getSql();
+  return await sql`
+    INSERT INTO homepage_sections (id, name, is_visible, content)
+    VALUES (${id}, ${data.name}, ${data.is_visible}, ${data.content})
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      is_visible = EXCLUDED.is_visible,
+      content = EXCLUDED.content
+    RETURNING *
+  `;
+}
+
 // Export raw sql for migrations/setup
 export const sql = (strings, ...values) => {
   const s = getSql();

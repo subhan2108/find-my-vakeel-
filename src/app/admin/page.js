@@ -5,7 +5,9 @@ import Link from 'next/link';
 
 export default function AdminPage() {
   const [posts, setPosts] = useState([]);
+  const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('posts');
   const [editingId, setEditingId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginPassword, setLoginPassword] = useState('');
@@ -25,6 +27,7 @@ export default function AdminPage() {
     if (token === 'authenticated_vakeel_session') {
       setIsAuthenticated(true);
       fetchPosts();
+      fetchSections();
     } else {
       setLoading(false);
     }
@@ -44,6 +47,7 @@ export default function AdminPage() {
         localStorage.setItem('vakeel_admin_token', data.token);
         setIsAuthenticated(true);
         fetchPosts();
+        fetchSections();
       } else {
         setAuthError('Access Denied: Incorrect Password');
       }
@@ -77,6 +81,68 @@ export default function AdminPage() {
       setPosts([]); 
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const res = await fetch('/api/sections');
+      const data = await res.json();
+      if (!res.ok) throw new Error('Failed to fetch sections');
+      setSections(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setSections([]);
+    }
+  };
+
+  const toggleSectionVisibility = async (section) => {
+    try {
+      const updatedSection = { ...section, is_visible: !section.is_visible };
+      const res = await fetch(`/api/sections/${section.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSection)
+      });
+      if (res.ok) {
+        fetchSections();
+      }
+    } catch (err) {
+      alert('Failed to update section visibility');
+    }
+  };
+
+  const updateSectionTitle = async (section, newName) => {
+    try {
+      const updatedSection = { ...section, name: newName };
+      const res = await fetch(`/api/sections/${section.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSection)
+      });
+      if (res.ok) {
+        fetchSections();
+        alert('Section updated successfully');
+      }
+    } catch (err) {
+      alert('Failed to update section');
+    }
+  };
+
+  const updateSectionContent = async (section, contentKey, contentValue) => {
+    try {
+      const updatedContent = { ...section.content, [contentKey]: contentValue };
+      const updatedSection = { ...section, content: updatedContent };
+      const res = await fetch(`/api/sections/${section.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSection)
+      });
+      if (res.ok) {
+        setSections(sections.map(s => s.id === section.id ? updatedSection : s));
+      }
+    } catch (err) {
+      alert('Failed to update content');
     }
   };
 
@@ -188,6 +254,22 @@ export default function AdminPage() {
             </div>
           </div>
 
+          <div className="flex gap-4 mb-8">
+            <button 
+              onClick={() => setActiveTab('posts')} 
+              className={`px-6 py-2 rounded-lg font-bold transition-colors ${activeTab === 'posts' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-slate-500 border border-slate-200'}`}
+            >
+              Blog Posts
+            </button>
+            <button 
+              onClick={() => setActiveTab('sections')} 
+              className={`px-6 py-2 rounded-lg font-bold transition-colors ${activeTab === 'sections' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-slate-500 border border-slate-200'}`}
+            >
+              Homepage Sections
+            </button>
+          </div>
+
+          {activeTab === 'posts' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Create/Edit Post Form */}
             <div className="lg:col-span-1">
@@ -317,6 +399,73 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+          ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <h3 className="font-bold text-lg mb-6">Manage Homepage Sections</h3>
+            <div className="space-y-4">
+              {sections.length === 0 ? (
+                <div className="text-center p-8 text-slate-400">No sections found. Make sure the database is set up and the homepage has been loaded at least once.</div>
+              ) : (
+                sections.map((section) => (
+                  <div key={section.id} className="flex flex-col p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="font-bold text-brand-dark text-lg">{section.id.replace(/-/g, ' ').toUpperCase()}</span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${section.is_visible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {section.is_visible ? 'Visible' : 'Hidden'}
+                          </span>
+                        </div>
+                        <input 
+                          type="text" 
+                          defaultValue={section.name}
+                          onBlur={(e) => {
+                            if (e.target.value !== section.name) {
+                              updateSectionTitle(section, e.target.value);
+                            }
+                          }}
+                          className="w-full max-w-md border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none"
+                          placeholder="Admin Label (e.g. Hero Section)"
+                        />
+                      </div>
+                      <div className="flex shrink-0">
+                        <button 
+                          onClick={() => toggleSectionVisibility(section)}
+                          className={`px-4 py-2 rounded font-bold text-sm transition-colors ${section.is_visible ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                        >
+                          {section.is_visible ? 'Hide Section' : 'Show Section'}
+                        </button>
+                      </div>
+                    </div>
+                    {/* Content Editor */}
+                    {section.content && Object.keys(section.content).length > 0 && (
+                      <div className="bg-white border border-slate-200 p-4 rounded-lg mt-2">
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Edit Content Text</h4>
+                        <div className="space-y-3">
+                          {Object.entries(section.content).map(([key, value]) => (
+                            <div key={key}>
+                              <label className="block text-xs font-bold text-slate-600 capitalize mb-1">{key}</label>
+                              <textarea 
+                                defaultValue={value}
+                                onBlur={(e) => {
+                                  if (e.target.value !== value) {
+                                    updateSectionContent(section, key, e.target.value);
+                                  }
+                                }}
+                                className="w-full border border-slate-200 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none resize-y min-h-[40px]"
+                                rows={value.length > 50 ? 3 : 1}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          )}
         </div>
       </div>
     </main>

@@ -8,6 +8,7 @@ export default function Home() {
   const [activeFaq, setActiveFaq] = useState(null);
   const [step, setStep] = useState(1);
   const [posts, setPosts] = useState([]);
+  const [sections, setSections] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -18,7 +19,76 @@ export default function Home() {
 
   useEffect(() => {
     fetchLatestPosts();
+    fetchSections();
   }, []);
+
+  const fetchSections = async () => {
+    try {
+      const res = await fetch('/api/sections');
+      if (res.ok) {
+        const data = await res.json();
+        
+        // If DB has no sections, we need to initialize them
+        if (data.length === 0) {
+          initSections();
+        } else {
+          setSections(data);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch sections:', err);
+    }
+  };
+
+  const initSections = async () => {
+    const defaultSections = [
+      { id: 'hero', name: 'Hero Section', is_visible: true, content: {} },
+      { id: 'trust-badges', name: 'Trust Badges', is_visible: true, content: {} },
+      { id: 'practice-areas', name: 'Practice Areas', is_visible: true, content: {} },
+      { id: 'how-it-works', name: 'How It Works', is_visible: true, content: {} },
+      { id: 'why-choose-us', name: 'Why Choose Us', is_visible: true, content: {} },
+      { id: 'testimonials', name: 'Testimonials', is_visible: true, content: {} },
+      { id: 'for-lawyers', name: 'For Lawyers', is_visible: true, content: {} },
+      { id: 'about', name: 'About Us', is_visible: true, content: {} },
+      { id: 'faq', name: 'FAQ Section', is_visible: true, content: {} },
+      { id: 'terms', name: 'Terms and Conditions', is_visible: true, content: {} },
+      { id: 'latest-blogs', name: 'Latest Blogs', is_visible: true, content: {} },
+      { id: 'contact', name: 'Contact Section', is_visible: true, content: {} },
+    ];
+    
+    // We update them sequentially
+    try {
+      for (const sec of defaultSections) {
+        await fetch(`/api/sections/${sec.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sec)
+        });
+      }
+      setSections(defaultSections);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const isSectionVisible = (id) => {
+    if (sections.length === 0) return true; // Show all by default while loading
+    const sec = sections.find(s => s.id === id);
+    return sec ? sec.is_visible : true;
+  };
+
+  const getSectionTitle = (id, defaultTitle) => {
+    const sec = sections.find(s => s.id === id);
+    return sec && sec.name ? sec.name : defaultTitle;
+  };
+
+  const getSectionContent = (id, key, defaultValue) => {
+    const sec = sections.find(s => s.id === id);
+    if (sec && sec.content && sec.content[key] !== undefined) {
+      return sec.content[key];
+    }
+    return defaultValue;
+  };
 
   const fetchLatestPosts = async () => {
     try {
@@ -86,6 +156,7 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden">
       {/* Hero Section */}
+      {isSectionVisible('hero') && (
       <section id="find-lawyer" className="relative min-h-screen flex items-center justify-center pt-32 overflow-hidden bg-cover bg-center bg-fixed" style={{ 
         backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.6)), url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80")' 
       }}>
@@ -94,15 +165,13 @@ export default function Home() {
             <div className="text-center lg:text-left" data-aos="fade-right">
               <div className="inline-flex items-center gap-2 mb-6 px-5 py-2.5 rounded-full glass-dark border border-brand-gold/40">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <span className="text-brand-gold font-semibold text-sm">5,000+ Verified Advocates Across India</span>
+                <span className="text-brand-gold font-semibold text-sm">{getSectionContent('hero', 'badge', '5,000+ Verified Advocates Across India')}</span>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 leading-tight">
-                Find the <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-yellow-200 to-brand-gold">Best Lawyer</span><br />
-                For Your Legal Battle
+                {getSectionContent('hero', 'heading', 'Find the Best Lawyer For Your Legal Battle')}
               </h1>
               <p className="text-lg md:text-xl text-slate-200 mb-8 max-w-xl mx-auto lg:mx-0">
-                Connect with top-rated advocates in Delhi, Mumbai, Bangalore, and 100+ cities.
-                <span className="text-brand-gold font-semibold ml-2">Free consultation.</span>
+                {getSectionContent('hero', 'subheading', 'Connect with top-rated advocates in Delhi, Mumbai, Bangalore, and 100+ cities. Free consultation.')}
               </p>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                 <a href="https://wa.me/918261889815" className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-semibold transition-all flex items-center gap-3 shadow-lg">
@@ -237,11 +306,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Trust Badges */}
+      {isSectionVisible('trust-badges') && (
       <section className="py-12 bg-white border-b border-slate-200">
         <div className="container mx-auto px-4">
-          <p className="text-center text-slate-500 text-sm mb-8">TRUSTED BY LEGAL PROFESSIONALS & CLIENTS ACROSS INDIA</p>
+          <p className="text-center text-slate-500 text-sm mb-8">{getSectionContent('trust-badges', 'heading', 'TRUSTED BY LEGAL PROFESSIONALS & CLIENTS ACROSS INDIA')}</p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             <div className="text-center opacity-60 hover:opacity-100 transition-all cursor-default group">
               <i className="fas fa-landmark text-4xl text-brand-dark group-hover:text-brand-blue"></i>
@@ -266,13 +337,15 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Practice Areas */}
+      {isSectionVisible('practice-areas') && (
       <section id="practice-areas" className="py-24 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-4">Our Legal <span className="text-gradient">Specializations</span></h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">Connecting you with specialized advocates for every legal need.</p>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-4">{getSectionContent('practice-areas', 'heading', 'Our Legal Specializations')}</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto">{getSectionContent('practice-areas', 'subheading', 'Connecting you with specialized advocates for every legal need.')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -298,13 +371,15 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* How It Works */}
+      {isSectionVisible('how-it-works') && (
       <section id="how-it-works" className="py-24 bg-brand-dark text-white overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">How Find My <span className="text-brand-gold">Vakeel</span> Works</h2>
-            <p className="text-slate-300 max-w-2xl mx-auto text-lg">Get legal help in 3 simple steps.</p>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">{getSectionContent('how-it-works', 'heading', 'How Find My Vakeel Works')}</h2>
+            <p className="text-slate-300 max-w-2xl mx-auto text-lg">{getSectionContent('how-it-works', 'subheading', 'Get legal help in 3 simple steps.')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
@@ -323,22 +398,24 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Why Choose Us */}
+      {isSectionVisible('why-choose-us') && (
       <section className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div data-aos="fade-right">
               <span className="inline-block px-4 py-2 rounded-full bg-brand-blue/10 text-brand-blue font-semibold text-sm mb-4">
-                <i className="fas fa-star mr-2"></i>WHY CHOOSE US
+                <i className="fas fa-star mr-2"></i>{getSectionContent('why-choose-us', 'badge', 'WHY CHOOSE US')}
               </span>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-6 leading-tight">India's Most <span className="text-gradient">Trusted</span> Legal Platform</h2>
-              <p className="text-slate-600 text-lg mb-8">With over 5,000 verified lawyers and 10,000+ successful cases, Find My Vakeel is the go-to platform for legal assistance.</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-6 leading-tight">{getSectionContent('why-choose-us', 'heading', "India's Most Trusted Legal Platform")}</h2>
+              <p className="text-slate-600 text-lg mb-8">{getSectionContent('why-choose-us', 'subheading', 'With over 5,000 verified lawyers and 10,000+ successful cases, Find My Vakeel is the go-to platform for legal assistance.')}</p>
               <div className="space-y-6">
                 {[
-                  { t: "Bar Council Verified", d: "Every lawyer undergoes strict verification.", i: "fa-circle-check", c: "green" },
-                  { t: "Free Consultation", d: "Get 10-15 minutes free consultation.", i: "fa-hand-holding-dollar", c: "blue" },
-                  { t: "Pan-India Presence", d: "From Supreme Court to District Courts.", i: "fa-map-location-dot", c: "purple" }
+                  { t: getSectionContent('why-choose-us', 'feature_1_title', 'Bar Council Verified'), d: getSectionContent('why-choose-us', 'feature_1_desc', 'Every lawyer undergoes strict verification.'), i: "fa-circle-check", c: "green" },
+                  { t: getSectionContent('why-choose-us', 'feature_2_title', 'Free Consultation'), d: getSectionContent('why-choose-us', 'feature_2_desc', 'Get 10-15 minutes free consultation.'), i: "fa-hand-holding-dollar", c: "blue" },
+                  { t: getSectionContent('why-choose-us', 'feature_3_title', 'Pan-India Presence'), d: getSectionContent('why-choose-us', 'feature_3_desc', 'From Supreme Court to District Courts.'), i: "fa-map-location-dot", c: "purple" }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group cursor-default">
                     <div className={`w-12 h-12 rounded-full bg-${item.c}-100 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110`}>
@@ -354,10 +431,10 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-2 gap-6" data-aos="fade-left">
               {[
-                { i: "fa-users", v: "5000+", l: "Verified Lawyers", c: "gold" },
-                { i: "fa-gavel", v: "10000+", l: "Cases Won", c: "blue" },
-                { i: "fa-city", v: "100+", l: "Cities Covered", c: "gold" },
-                { i: "fa-smile", v: "98%", l: "Satisfied Clients", c: "blue" }
+                { i: "fa-users", v: getSectionContent('why-choose-us', 'stat_1_value', '5000+'), l: getSectionContent('why-choose-us', 'stat_1_label', 'Verified Lawyers'), c: "gold" },
+                { i: "fa-gavel", v: getSectionContent('why-choose-us', 'stat_2_value', '10000+'), l: getSectionContent('why-choose-us', 'stat_2_label', 'Cases Won'), c: "blue" },
+                { i: "fa-city", v: getSectionContent('why-choose-us', 'stat_3_value', '100+'), l: getSectionContent('why-choose-us', 'stat_3_label', 'Cities Covered'), c: "gold" },
+                { i: "fa-smile", v: getSectionContent('why-choose-us', 'stat_4_value', '98%'), l: getSectionContent('why-choose-us', 'stat_4_label', 'Satisfied Clients'), c: "blue" }
               ].map((stat, idx) => (
                 <div key={idx} className="bg-slate-50 p-8 rounded-3xl text-center shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:-translate-y-2 hover:scale-105 border border-slate-100">
                   <i className={`fas ${stat.i} text-4xl text-brand-${stat.c} mb-4`}></i>
@@ -369,21 +446,23 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Testimonials */}
+      {isSectionVisible('testimonials') && (
       <section id="testimonials" className="py-24 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16" data-aos="fade-up">
             <span className="inline-block px-4 py-2 rounded-full bg-brand-blue/10 text-brand-blue font-semibold text-sm mb-4">
-              <i className="fas fa-quote-left mr-2"></i>TESTIMONIALS
+              <i className="fas fa-quote-left mr-2"></i>{getSectionContent('testimonials', 'badge', 'TESTIMONIALS')}
             </span>
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-6">What Our <span className="text-gradient">Clients Say</span></h2>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-6">{getSectionContent('testimonials', 'heading', 'What Our Clients Say')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { n: "Rajesh Kumar", l: "Delhi", t: "Find My Vakeel connected me with an excellent criminal lawyer. The free consultation helped me understand my options.", i: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
-              { n: "Anita Sharma", l: "Mumbai", t: "The family lawyer I found was compassionate and professional. Got a fair settlement. Thank you!", i: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150" },
-              { n: "Vikram Patel", l: "Bangalore", t: "As a business owner, I needed a corporate lawyer urgently. Find My Vakeel connected me within hours.", i: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" }
+              { n: getSectionContent('testimonials', 't1_name', 'Rajesh Kumar'), l: getSectionContent('testimonials', 't1_location', 'Delhi'), t: getSectionContent('testimonials', 't1_text', 'Find My Vakeel connected me with an excellent criminal lawyer. The free consultation helped me understand my options.'), i: getSectionContent('testimonials', 't1_image', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150') },
+              { n: getSectionContent('testimonials', 't2_name', 'Anita Sharma'), l: getSectionContent('testimonials', 't2_location', 'Mumbai'), t: getSectionContent('testimonials', 't2_text', 'The family lawyer I found was compassionate and professional. Got a fair settlement. Thank you!'), i: getSectionContent('testimonials', 't2_image', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150') },
+              { n: getSectionContent('testimonials', 't3_name', 'Vikram Patel'), l: getSectionContent('testimonials', 't3_location', 'Bangalore'), t: getSectionContent('testimonials', 't3_text', 'As a business owner, I needed a corporate lawyer urgently. Find My Vakeel connected me within hours.'), i: getSectionContent('testimonials', 't3_image', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150') }
             ].map((test, idx) => (
               <div key={idx} className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:-translate-y-2 hover:scale-105 border border-transparent hover:border-brand-gold" data-aos="fade-up" data-aos-delay={idx * 100}>
                 <div className="flex items-center gap-1 mb-6">
@@ -404,14 +483,16 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* For Lawyers */}
+      {isSectionVisible('for-lawyers') && (
       <section id="lawyer-join" className="bg-brand-dark overflow-hidden w-full" data-aos="fade-up">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
           <div className="p-10 md:p-20 lg:p-24 xl:p-32 flex flex-col justify-center">
-            <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-4">For Legal Professionals</span>
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-8 leading-tight">Grow Your Legal Practice With Us</h2>
-            <p className="text-slate-300 mb-10 text-lg leading-relaxed">Get high-quality leads daily, build your online brand, and focus on winning cases while we handle your growth.</p>
+            <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-4">{getSectionContent('for-lawyers', 'badge', 'For Legal Professionals')}</span>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-8 leading-tight">{getSectionContent('for-lawyers', 'heading', 'Grow Your Legal Practice With Us')}</h2>
+            <p className="text-slate-300 mb-10 text-lg leading-relaxed">{getSectionContent('for-lawyers', 'subheading', 'Get high-quality leads daily, build your online brand, and focus on winning cases while we handle your growth.')}</p>
             <ul className="space-y-5 mb-10">
               {[
                 { t: "Get Verified Leads", d: "Receive genuine client inquiries on WhatsApp." },
@@ -446,19 +527,21 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* About Section */}
+      {isSectionVisible('about') && (
       <section id="about" className="py-24 bg-slate-50 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div data-aos="fade-right">
               <span className="inline-block px-4 py-2 rounded-full bg-brand-blue/10 text-brand-blue font-semibold text-sm mb-4">
-                <i className="fas fa-info-circle mr-2"></i>ABOUT US
+                <i className="fas fa-info-circle mr-2"></i>{getSectionContent('about', 'badge', 'ABOUT US')}
               </span>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-8">Empowering India's Legal <span className="text-gradient">Landscape</span></h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-8">{getSectionContent('about', 'heading', "Empowering India's Legal Landscape")}</h2>
               <div className="space-y-6 text-slate-600 text-lg leading-relaxed">
-                <p>Find My Vakeel is India's most trusted legal marketplace, connecting clients with verified advocates across 100+ cities.</p>
-                <p>Our platform features 5,000+ verified lawyers specializing in Family Law, Criminal Defense, Property, Corporate, and Civil matters. Every lawyer undergoes a strict verification process including Bar Council ID checks.</p>
+                <p>{getSectionContent('about', 'text1', "Find My Vakeel is India's most trusted legal marketplace, connecting clients with verified advocates across 100+ cities.")}</p>
+                <p>{getSectionContent('about', 'text2', "Our platform features 5,000+ verified lawyers specializing in Family Law, Criminal Defense, Property, Corporate, and Civil matters. Every lawyer undergoes a strict verification process including Bar Council ID checks.")}</p>
                 <div className="grid grid-cols-2 gap-4 mt-8">
                   {["Bar Council Verified", "100% Confidential", "Free Consultation", "Expert Advice"].map(t => (
                     <div key={t} className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
@@ -491,12 +574,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ Section */}
+      {isSectionVisible('faq') && (
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-brand-dark mb-6">{getSectionContent('faq', 'heading', 'Frequently Asked Questions')}</h2>
             <div className="w-24 h-1.5 bg-gradient-to-r from-brand-blue to-brand-gold mx-auto rounded-full"></div>
           </div>
           <div className="space-y-4">
@@ -524,12 +609,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Terms and Conditions Section */}
+      {isSectionVisible('terms') && (
       <section id="terms" className="py-24 bg-slate-50 overflow-hidden">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="bg-white rounded-[3rem] p-10 md:p-20 shadow-2xl border border-slate-200" data-aos="fade-up">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-12 border-b pb-8">Terms and <span className="text-gradient">Conditions</span></h2>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-12 border-b pb-8">{getSectionContent('terms', 'heading', 'Terms and Conditions')}</h2>
             <div className="space-y-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {[
@@ -559,16 +646,18 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Latest Blogs */}
+      {isSectionVisible('latest-blogs') && (
       <section className="py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16" data-aos="fade-up">
             <div>
               <span className="inline-block px-4 py-2 rounded-full bg-brand-gold/10 text-brand-gold font-semibold text-sm mb-4">
-                <i className="fas fa-newspaper mr-2"></i>LEGAL INSIGHTS
+                <i className="fas fa-newspaper mr-2"></i>{getSectionContent('latest-blogs', 'badge', 'LEGAL INSIGHTS')}
               </span>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark">Latest Blogs & <span className="text-gradient">Articles</span></h2>
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark">{getSectionContent('latest-blogs', 'heading', 'Latest Blogs & Articles')}</h2>
             </div>
             <Link href="/blog" className="mt-8 md:mt-0 text-brand-blue font-bold hover:underline flex items-center gap-3 group">
               View All Insights <i className="fas fa-arrow-right transition-transform group-hover:translate-x-2"></i>
@@ -604,13 +693,15 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Contact Section */}
+      {isSectionVisible('contact') && (
       <section id="contact" className="py-24 bg-slate-50 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20" data-aos="fade-up">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-6">Get In <span className="text-gradient">Touch</span></h2>
-            <p className="text-slate-600 max-w-2xl mx-auto text-xl">We're here to help you navigate your legal journey 24/7.</p>
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-brand-dark mb-6">{getSectionContent('contact', 'heading', 'Get In Touch')}</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto text-xl">{getSectionContent('contact', 'subheading', "We're here to help you navigate your legal journey 24/7.")}</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {[
@@ -630,6 +721,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
     </main>
   );
 }
