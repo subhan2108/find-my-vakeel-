@@ -1,0 +1,127 @@
+import { getCustomPage } from '@/lib/db';
+import { notFound } from 'next/navigation';
+import SafeScriptExecution from '@/components/SafeScriptExecution';
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  let page = null;
+  try {
+    page = await getCustomPage(slug);
+  } catch (err) {}
+
+  if (!page) return { title: 'Not Found' };
+
+  const metadata = {
+    title: page.title || 'Custom Page',
+    description: page.meta_description || 'Custom legal page on Find My Vakeel',
+  };
+
+  if (page.keywords) {
+    metadata.keywords = page.keywords;
+  }
+
+  if (page.canonical_url) {
+    metadata.alternates = { canonical: page.canonical_url };
+  } else {
+    metadata.alternates = { canonical: `/p/${slug}` };
+  }
+
+  return metadata;
+}
+
+export default async function CustomPage({ params }) {
+  const { slug } = await params;
+  let page = null;
+  
+  try {
+    page = await getCustomPage(slug);
+  } catch (err) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-32">
+        <h1 className="text-2xl font-bold">Database Required</h1>
+      </div>
+    );
+  }
+
+  if (!page) {
+    notFound();
+  }
+
+  let rawHtml = page.html_content || '';
+  
+  // 1. Extract Styles
+  const styleRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
+  let styleMatch;
+  let extractedStyles = [];
+  while ((styleMatch = styleRegex.exec(rawHtml)) !== null) {
+    if (styleMatch[1].trim()) {
+      extractedStyles.push(styleMatch[1]);
+    }
+  }
+  let htmlWithoutStyles = rawHtml.replace(styleRegex, '');
+
+  // 2. Extract Scripts (JS only, handling src)
+  const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let scriptMatch;
+  let scriptsToExecute = [];
+  
+  // Add legacy JS content if it exists
+  if (page.js_content) {
+    scriptsToExecute.push({ type: 'inline', content: page.js_content });
+  }
+
+  while ((scriptMatch = scriptRegex.exec(htmlWithoutStyles)) !== null) {
+    const attrs = scriptMatch[1] || '';
+    const content = scriptMatch[2] || '';
+    
+    // Ignore JSON-LD and other non-JS scripts
+    if (attrs.includes('application/ld+json')) continue;
+    if (attrs.includes('type') && !attrs.includes('text/javascript') && !attrs.includes('module')) {
+      // If it has a type that isn't JS/module, it might be something else we should ignore for execution
+      if (!attrs.includes('type=""')) continue; 
+    }
+
+    const srcMatch = attrs.match(/src=["']([^"']+)["']/i);
+    if (srcMatch) {
+      scriptsToExecute.push({ type: 'external', src: srcMatch[1] });
+    } else if (content.trim()) {
+      scriptsToExecute.push({ type: 'inline', content: content });
+    }
+  }
+
+  const finalHtml = htmlWithoutStyles.replace(scriptRegex, '');
+
+  return (
+    <>
+      {page.schema_markup && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: page.schema_markup }}
+        />
+      )}
+      
+      {/* Inject Extracted Styles */}
+      {extractedStyles.map((style, i) => (
+        <style key={`extracted-style-${i}`} dangerouslySetInnerHTML={{ __html: style }} />
+      ))}
+      
+      {/* Inject Legacy Style */}
+      {page.css_content && (
+        <style dangerouslySetInnerHTML={{ __html: page.css_content }} />
+      )}
+
+      <main className="pt-32 pb-20 min-h-screen">
+        {/* Render Clean HTML content */}
+        <div 
+          className="custom-page-container w-full"
+          dangerouslySetInnerHTML={{ __html: finalHtml }} 
+        />
+
+        {/* Execute JavaScript safely on the client side */}
+        {scriptsToExecute.length > 0 && (
+          <SafeScriptExecution scripts={scriptsToExecute} />
+        )}
+      </main>
+    </>
+  );
+}

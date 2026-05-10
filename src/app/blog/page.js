@@ -1,7 +1,36 @@
-import { getPosts } from '@/lib/db';
+import { getPosts, getStaticSeo } from '@/lib/db';
 import Link from 'next/link';
 
+export async function generateMetadata() {
+  let seo = null;
+  try {
+    seo = await getStaticSeo('/blog');
+  } catch (err) {}
+
+  const metadata = {
+    title: seo?.meta_title || "Legal Articles & Updates | Find My Vakeel",
+    description: seo?.meta_description || "Read the latest legal updates, articles, and insights from India's top advocates and legal experts.",
+  };
+
+  if (seo?.keywords) {
+    metadata.keywords = seo.keywords;
+  }
+
+  if (seo?.canonical_url) {
+    metadata.alternates = { canonical: seo.canonical_url };
+  } else {
+    metadata.alternates = { canonical: '/blog' };
+  }
+
+  return metadata;
+}
+
 export default async function BlogPage() {
+  let schemaScript = null;
+  try {
+    const seo = await getStaticSeo('/blog');
+    if (seo?.schema_markup) schemaScript = seo.schema_markup;
+  } catch (err) {}
   let posts = [];
   let dbError = null;
 
@@ -32,9 +61,16 @@ export default async function BlogPage() {
   }
 
   return (
-    <main className="pt-32 pb-20 bg-slate-50 min-h-screen">
-      <div className="container mx-auto px-4">
-        {/* Header */}
+    <>
+      {schemaScript && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: schemaScript }}
+        />
+      )}
+      <main className="pt-32 pb-20 bg-slate-50 min-h-screen">
+        <div className="container mx-auto px-4">
+          {/* Header */}
         <div className="text-center mb-16" data-aos="fade-up">
           <span className="text-brand-blue font-bold tracking-widest uppercase text-sm mb-4 block">Our Journal</span>
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-brand-dark mb-6">Blogs & <span className="text-gradient">Articles</span></h1>
@@ -106,5 +142,6 @@ export default async function BlogPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

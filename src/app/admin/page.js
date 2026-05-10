@@ -13,13 +13,39 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [seoRoute, setSeoRoute] = useState('/');
+  const [seoFormData, setSeoFormData] = useState({
+    meta_title: '',
+    meta_description: '',
+    canonical_url: '',
+    schema_markup: '',
+    keywords: ''
+  });
+  const [customPages, setCustomPages] = useState([]);
+  const [editingCustomPageSlug, setEditingCustomPageSlug] = useState(null);
+  const [customPageForm, setCustomPageForm] = useState({
+    slug: '',
+    title: '',
+    html_content: '',
+    css_content: '',
+    js_content: '',
+    meta_description: '',
+    canonical_url: '',
+    schema_markup: '',
+    keywords: ''
+  });
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80',
     type: 'blog',
     category: 'Legal Updates',
-    author: 'Editorial Team'
+    author: 'Editorial Team',
+    meta_title: '',
+    meta_description: '',
+    canonical_url: '',
+    schema_markup: '',
+    keywords: ''
   });
 
   // Check for existing session
@@ -29,10 +55,49 @@ export default function AdminPage() {
       setIsAuthenticated(true);
       fetchPosts();
       fetchSections();
+      fetchCustomPages();
     } else {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'seo' && isAuthenticated) {
+      fetchStaticSeo();
+    }
+  }, [seoRoute, activeTab, isAuthenticated]);
+
+  const fetchStaticSeo = async () => {
+    try {
+      const res = await fetch(`/api/seo?route=${encodeURIComponent(seoRoute)}`);
+      const data = await res.json();
+      if (res.ok) {
+        setSeoFormData({
+          meta_title: data.meta_title || '',
+          meta_description: data.meta_description || '',
+          canonical_url: data.canonical_url || '',
+          schema_markup: data.schema_markup || '',
+          keywords: data.keywords || ''
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSeoSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/seo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ route: seoRoute, ...seoFormData })
+      });
+      if (res.ok) alert('SEO settings saved successfully!');
+    } catch (err) {
+      alert('Failed to save SEO settings');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -49,6 +114,7 @@ export default function AdminPage() {
         setIsAuthenticated(true);
         fetchPosts();
         fetchSections();
+        fetchCustomPages();
       } else {
         setAuthError('Access Denied: Incorrect Password');
       }
@@ -94,6 +160,75 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
       setSections([]);
+    }
+  };
+
+  const fetchCustomPages = async () => {
+    try {
+      const res = await fetch('/api/custom-pages');
+      const data = await res.json();
+      setCustomPages(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCustomPageSubmit = async (e) => {
+    e.preventDefault();
+    if (!customPageForm.slug) return alert('Slug is required');
+    try {
+      const res = await fetch('/api/custom-pages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customPageForm)
+      });
+      if (res.ok) {
+        alert('Custom page saved successfully!');
+        setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+        setEditingCustomPageSlug(null);
+        fetchCustomPages();
+      }
+    } catch (err) {
+      alert('Failed to save custom page');
+    }
+  };
+
+  const startEditCustomPage = async (pageStub) => {
+    try {
+      const res = await fetch(`/api/custom-pages/${pageStub.slug}`);
+      const page = await res.json();
+      setEditingCustomPageSlug(page.slug);
+      setCustomPageForm({
+        slug: page.slug || '',
+        title: page.title || '',
+        html_content: page.html_content || '',
+        css_content: '',
+        js_content: '',
+        meta_description: page.meta_description || '',
+        canonical_url: page.canonical_url || '',
+        schema_markup: page.schema_markup || '',
+        keywords: page.keywords || ''
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      alert('Failed to load full page data');
+    }
+  };
+
+  const cancelEditCustomPage = () => {
+    setEditingCustomPageSlug(null);
+    setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+  };
+
+  const deleteCustomPage = async (slug) => {
+    if (!confirm('Are you sure you want to delete this custom page?')) return;
+    try {
+      const res = await fetch(`/api/custom-pages/${slug}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchCustomPages();
+      }
+    } catch (err) {
+      alert('Failed to delete custom page');
     }
   };
 
@@ -160,7 +295,7 @@ export default function AdminPage() {
       
       if (res.ok) {
         alert(editingId ? 'Post updated successfully!' : 'Post published successfully!');
-        setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates' });
+        setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
         setEditingId(null);
         fetchPosts();
       }
@@ -177,14 +312,19 @@ export default function AdminPage() {
       image: post.image || '',
       type: post.type || 'blog',
       category: post.category || '',
-      author: post.author || 'Editorial Team'
+      author: post.author || 'Editorial Team',
+      meta_title: post.meta_title || '',
+      meta_description: post.meta_description || '',
+      canonical_url: post.canonical_url || '',
+      schema_markup: post.schema_markup || '',
+      keywords: post.keywords || ''
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team' });
+    setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
   };
 
   const deletePost = async (id) => {
@@ -267,6 +407,18 @@ export default function AdminPage() {
             >
               Homepage Sections
             </button>
+            <button 
+              onClick={() => setActiveTab('seo')} 
+              className={`px-6 py-2 rounded-lg font-bold transition-colors ${activeTab === 'seo' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-slate-500 border border-slate-200'}`}
+            >
+              Static Pages SEO
+            </button>
+            <button 
+              onClick={() => setActiveTab('customPages')} 
+              className={`px-6 py-2 rounded-lg font-bold transition-colors ${activeTab === 'customPages' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-slate-500 border border-slate-200'}`}
+            >
+              Custom HTML Pages
+            </button>
           </div>
 
           {activeTab === 'posts' ? (
@@ -345,6 +497,33 @@ export default function AdminPage() {
                       required
                     ></textarea>
                   </div>
+                  
+                  <div className="pt-6 border-t border-slate-100 mt-6">
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">SEO Settings (Optional)</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Title</label>
+                        <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={formData.meta_title || ''} onChange={(e) => setFormData({...formData, meta_title: e.target.value})} placeholder="Custom SEO Title" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Description</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-20 focus:ring-2 focus:ring-brand-blue outline-none" value={formData.meta_description || ''} onChange={(e) => setFormData({...formData, meta_description: e.target.value})} placeholder="SEO Description"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Canonical URL</label>
+                        <input type="url" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={formData.canonical_url || ''} onChange={(e) => setFormData({...formData, canonical_url: e.target.value})} placeholder="https://findmyvakeel.com/blog/..." />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Keywords (Comma separated)</label>
+                        <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={formData.keywords || ''} onChange={(e) => setFormData({...formData, keywords: e.target.value})} placeholder="legal, advice, vakeel" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Schema Markup (JSON-LD)</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-32 focus:ring-2 focus:ring-brand-blue outline-none font-mono text-xs" value={formData.schema_markup || ''} onChange={(e) => setFormData({...formData, schema_markup: e.target.value})} placeholder='{"@context": "https://schema.org", "@type": "Article"...}'></textarea>
+                      </div>
+                    </div>
+                  </div>
+
                   <button type="submit" className="w-full btn-gold text-brand-dark py-3 rounded-lg font-bold">
                     {editingId ? 'Update Post' : 'Publish Post'}
                   </button>
@@ -399,7 +578,7 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
-          ) : (
+          ) : activeTab === 'sections' ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h3 className="font-bold text-lg mb-6">Manage Homepage Sections</h3>
             <div className="space-y-4">
@@ -479,6 +658,128 @@ export default function AdminPage() {
                 ))
               )}
             </div>
+          </div>
+          ) : activeTab === 'customPages' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 sticky top-32">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-brand-dark">
+                    {editingCustomPageSlug ? 'Edit Custom Page' : 'Create Custom Page'}
+                  </h3>
+                  {editingCustomPageSlug && (
+                    <button onClick={cancelEditCustomPage} className="text-xs text-red-500 font-bold hover:underline">Cancel</button>
+                  )}
+                </div>
+                <form onSubmit={handleCustomPageSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">URL Path / Slug</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.slug} onChange={(e) => setCustomPageForm({...customPageForm, slug: e.target.value})} placeholder="e.g. about-us" required disabled={!!editingCustomPageSlug} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Page Title (Meta)</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.title} onChange={(e) => setCustomPageForm({...customPageForm, title: e.target.value})} placeholder="About Find My Vakeel" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Code (HTML, CSS &lt;style&gt;, JS &lt;script&gt;)</label>
+                    <textarea className="w-full border border-slate-200 rounded-lg p-4 text-sm h-96 font-mono text-xs focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50" value={customPageForm.html_content} onChange={(e) => setCustomPageForm({...customPageForm, html_content: e.target.value})} placeholder="<style> body { background: #fff; } </style>&#10;&#10;<div>Hello World</div>&#10;&#10;<script> console.log('loaded'); </script>"></textarea>
+                  </div>
+
+                  <div className="pt-6 border-t border-slate-100 mt-6">
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">SEO Settings (Optional)</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Description</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-20 focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.meta_description} onChange={(e) => setCustomPageForm({...customPageForm, meta_description: e.target.value})} placeholder="SEO Description"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Canonical URL</label>
+                        <input type="url" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.canonical_url} onChange={(e) => setCustomPageForm({...customPageForm, canonical_url: e.target.value})} placeholder="https://findmyvakeel.com/p/..." />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Keywords (Comma separated)</label>
+                        <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.keywords} onChange={(e) => setCustomPageForm({...customPageForm, keywords: e.target.value})} placeholder="legal, advice, vakeel" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Schema Markup (JSON-LD)</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-32 focus:ring-2 focus:ring-brand-blue outline-none font-mono text-xs" value={customPageForm.schema_markup} onChange={(e) => setCustomPageForm({...customPageForm, schema_markup: e.target.value})} placeholder='{"@context": "https://schema.org"}'></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="w-full btn-gold text-brand-dark py-3 rounded-lg font-bold">
+                    {editingCustomPageSlug ? 'Update Page' : 'Create Page'}
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-lg">Custom Pages</h3>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {customPages.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400">No custom pages yet.</div>
+                  ) : customPages.map((page) => (
+                    <div key={page.slug} className="p-6 flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-brand-dark">{page.title || page.slug}</h4>
+                        <a href={`/p/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/p/{page.slug}</a>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => startEditCustomPage(page)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center">
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button onClick={() => deleteCustomPage(page.slug)} className="w-10 h-10 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                          <i className="fas fa-trash-can"></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-3xl">
+            <h3 className="font-bold text-lg mb-6">Manage Static Pages SEO</h3>
+            <div className="mb-8">
+              <label className="block text-sm font-semibold mb-2">Select Page Route</label>
+              <select 
+                className="w-full max-w-md border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none"
+                value={seoRoute}
+                onChange={(e) => setSeoRoute(e.target.value)}
+              >
+                <option value="/">Homepage (/)</option>
+                <option value="/blog">Blog List (/blog)</option>
+              </select>
+            </div>
+            <form onSubmit={handleSeoSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Meta Title</label>
+                <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={seoFormData.meta_title || ''} onChange={(e) => setSeoFormData({...seoFormData, meta_title: e.target.value})} placeholder="Title Tag" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Meta Description</label>
+                <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-24 focus:ring-2 focus:ring-brand-blue outline-none" value={seoFormData.meta_description || ''} onChange={(e) => setSeoFormData({...seoFormData, meta_description: e.target.value})} placeholder="Meta Description"></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Canonical URL</label>
+                <input type="url" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={seoFormData.canonical_url || ''} onChange={(e) => setSeoFormData({...seoFormData, canonical_url: e.target.value})} placeholder="https://findmyvakeel.com/path" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Meta Keywords (Comma separated)</label>
+                <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={seoFormData.keywords || ''} onChange={(e) => setSeoFormData({...seoFormData, keywords: e.target.value})} placeholder="legal, advice, vakeel" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Schema Markup (JSON-LD)</label>
+                <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-40 focus:ring-2 focus:ring-brand-blue outline-none font-mono text-xs" value={seoFormData.schema_markup || ''} onChange={(e) => setSeoFormData({...seoFormData, schema_markup: e.target.value})} placeholder='{"@context": "https://schema.org"...}'></textarea>
+              </div>
+              <button type="submit" className="bg-brand-gold text-brand-dark px-8 py-3 rounded-lg font-bold shadow-md hover:bg-yellow-500 transition-colors">
+                Save SEO Settings
+              </button>
+            </form>
           </div>
           )}
         </div>

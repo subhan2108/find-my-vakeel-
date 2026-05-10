@@ -24,7 +24,7 @@ export default function Header() {
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between gap-4">
           {/* Logo (Left) */}
-          <div className="flex-1 flex justify-start min-w-0">
+          <div className="flex justify-start shrink-0 z-10">
             <Link href="/" className="flex items-center gap-2 md:gap-3 group">
               <div className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-brand-blue to-brand-navy rounded-lg md:rounded-xl flex items-center justify-center text-brand-gold text-lg md:text-2xl font-serif font-bold shadow-lg group-hover:rotate-12 transition-transform shrink-0">
                 <i className="fas fa-scale-balanced"></i>
@@ -53,7 +53,7 @@ export default function Header() {
               <Link 
                 key={link.label}
                 href={link.href} 
-                className={`px-4 py-2 font-semibold text-sm transition-all rounded-full hover:bg-white/10 ${displayScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`}
+                className={`px-2 xl:px-3 py-2 font-semibold text-sm transition-all rounded-full whitespace-nowrap hover:bg-white/10 ${displayScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`}
               >
                 {link.label}
               </Link>
@@ -61,7 +61,7 @@ export default function Header() {
           </nav>
 
           {/* Actions (Right) */}
-          <div className="flex-1 flex justify-end items-center gap-3 md:gap-6">
+          <div className="flex justify-end items-center gap-3 md:gap-6 shrink-0 z-10">
             <div className="hidden lg:flex items-center gap-6">
               <a href="https://wa.me/918261889815" className={`font-bold flex items-center gap-2 transition-colors ${displayScrolled ? 'text-brand-blue hover:text-brand-navy' : 'text-white hover:text-brand-gold'}`}>
                 <i className="fab fa-whatsapp text-xl"></i> 

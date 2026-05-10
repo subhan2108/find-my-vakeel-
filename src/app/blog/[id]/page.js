@@ -3,6 +3,33 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProgressBar from '@/components/ProgressBar';
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  let post = null;
+  try {
+    post = await getPostById(id);
+  } catch (err) {}
+
+  if (!post) return { title: 'Not Found' };
+
+  const metadata = {
+    title: post.meta_title || post.title,
+    description: post.meta_description || post.content.substring(0, 160),
+  };
+
+  if (post.keywords) {
+    metadata.keywords = post.keywords;
+  }
+
+  if (post.canonical_url) {
+    metadata.alternates = { canonical: post.canonical_url };
+  } else {
+    metadata.alternates = { canonical: `/blog/${id}` };
+  }
+
+  return metadata;
+}
+
 export default async function BlogPostPage({ params }) {
   const { id } = await params;
   let post = null;
@@ -30,8 +57,15 @@ export default async function BlogPostPage({ params }) {
   }
 
   return (
-    <main className="pt-24 min-h-screen bg-white">
-      {/* Article Hero */}
+    <>
+      {post.schema_markup && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: post.schema_markup }}
+        />
+      )}
+      <main className="pt-24 min-h-screen bg-white">
+        {/* Article Hero */}
       <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
         <img 
           src={post.image || 'https://via.placeholder.com/1200x600'} 
@@ -128,5 +162,6 @@ export default async function BlogPostPage({ params }) {
       </article>
 
     </main>
+    </>
   );
 }
