@@ -19,6 +19,7 @@ export async function GET() {
         { id: 'terms', name: 'Terms and Conditions', is_visible: true, content: { heading: 'Terms and Conditions' } },
         { id: 'latest-blogs', name: 'Latest Blogs', is_visible: true, content: { badge: 'LEGAL INSIGHTS', heading: 'Latest Blogs & Articles' } },
         { id: 'contact', name: 'Contact Section', is_visible: true, content: { heading: 'Get In Touch', subheading: "We're here to help you navigate your legal journey 24/7." } },
+        { id: 'footer', name: 'Footer Section', is_visible: true, content: { description: "India's most trusted legal marketplace. Connecting clients with verified advocates across 100+ cities.", address: "123 Legal Chambers, High Court Road,<br />New Delhi, India - 110001", phone: "+91 82618 89815", email: "support@findmyvakeel.com", facebook_url: "#", twitter_url: "#", linkedin_url: "#", instagram_url: "#", copyright: "Find My Vakeel. All rights reserved." } },
       ];
       
       for (const sec of defaultSections) {
@@ -26,7 +27,7 @@ export async function GET() {
       }
       sections = await getSections();
     } else {
-      // Check if they need re-seeding (empty content)
+      // Check if they need re-seeding (empty content) or missing sections
       let needsReseed = false;
       const defaultMap = {
         'hero': { badge: '5,000+ Verified Advocates Across India', heading: 'Find the Best Lawyer For Your Legal Battle', subheading: 'Connect with top-rated advocates in Delhi, Mumbai, Bangalore, and 100+ cities. Free consultation.' },
@@ -40,8 +41,18 @@ export async function GET() {
         'faq': { heading: 'Frequently Asked Questions' },
         'terms': { heading: 'Terms and Conditions' },
         'latest-blogs': { badge: 'LEGAL INSIGHTS', heading: 'Latest Blogs & Articles' },
-        'contact': { heading: 'Get In Touch', subheading: "We're here to help you navigate your legal journey 24/7." }
+        'contact': { heading: 'Get In Touch', subheading: "We're here to help you navigate your legal journey 24/7." },
+        'footer': { description: "India's most trusted legal marketplace. Connecting clients with verified advocates across 100+ cities.", address: "123 Legal Chambers, High Court Road,<br />New Delhi, India - 110001", phone: "+91 82618 89815", email: "support@findmyvakeel.com", facebook_url: "#", twitter_url: "#", linkedin_url: "#", instagram_url: "#", copyright: "Find My Vakeel. All rights reserved." }
       };
+
+      // Ensure all default sections exist
+      const existingIds = sections.map(s => s.id);
+      for (const [id, content] of Object.entries(defaultMap)) {
+        if (!existingIds.includes(id)) {
+          await updateSection(id, { id, name: id.replace(/-/g, ' ').toUpperCase() + ' Section', is_visible: true, content });
+          needsReseed = true;
+        }
+      }
 
       for (const sec of sections) {
         if (!sec.content || Object.keys(sec.content).length === 0) {

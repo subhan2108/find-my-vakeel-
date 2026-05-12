@@ -57,6 +57,7 @@ export default function Home() {
       { id: 'terms', name: 'Terms and Conditions', is_visible: true, content: {} },
       { id: 'latest-blogs', name: 'Latest Blogs', is_visible: true, content: {} },
       { id: 'contact', name: 'Contact Section', is_visible: true, content: {} },
+      { id: 'footer', name: 'Footer Section', is_visible: true, content: {} },
     ];
 
     // We update them sequentially

@@ -66,6 +66,12 @@ export async function getSections() {
   return await sql`SELECT * FROM homepage_sections ORDER BY id ASC`;
 }
 
+export async function getSectionById(id) {
+  const sql = getSql();
+  const res = await sql`SELECT * FROM homepage_sections WHERE id = ${id}`;
+  return res[0] || null;
+}
+
 export async function updateSection(id, data) {
   const sql = getSql();
   return await sql`
