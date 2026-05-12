@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProgressBar from '@/components/ProgressBar';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }) {
   const { id } = await params;
   let post = null;
@@ -58,10 +60,12 @@ export default async function BlogPostPage({ params }) {
 
   return (
     <>
-      {post.schema_markup && (
+      {post.schema_markup && typeof post.schema_markup === 'string' && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: post.schema_markup }}
+          dangerouslySetInnerHTML={{ 
+            __html: post.schema_markup.replace(/<script[^>]*>|<\/script>/gi, '') 
+          }}
         />
       )}
       <main className="pt-24 min-h-screen bg-white">

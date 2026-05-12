@@ -1,6 +1,8 @@
 import { getPosts, getStaticSeo } from '@/lib/db';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   let seo = null;
   try {
@@ -62,10 +64,12 @@ export default async function BlogPage() {
 
   return (
     <>
-      {schemaScript && (
+      {schemaScript && typeof schemaScript === 'string' && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: schemaScript }}
+          dangerouslySetInnerHTML={{ 
+            __html: schemaScript.replace(/<script[^>]*>|<\/script>/gi, '') 
+          }}
         />
       )}
       <main className="pt-32 pb-20 bg-slate-50 min-h-screen">

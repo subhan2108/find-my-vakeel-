@@ -1,6 +1,8 @@
 import { getStaticSeo } from '@/lib/db';
 import HomeClient from './HomeClient';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   let seo = null;
   try {
@@ -41,10 +43,12 @@ export default async function Home() {
 
   return (
     <>
-      {schemaScript && (
+      {schemaScript && typeof schemaScript === 'string' && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: schemaScript }}
+          dangerouslySetInnerHTML={{ 
+            __html: schemaScript.replace(/<script[^>]*>|<\/script>/gi, '') 
+          }}
         />
       )}
       <HomeClient />
