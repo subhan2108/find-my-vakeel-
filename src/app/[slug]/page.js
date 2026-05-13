@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
   if (page.canonical_url) {
     metadata.alternates = { canonical: page.canonical_url };
   } else {
-    metadata.alternates = { canonical: `/p/${slug}` };
+    metadata.alternates = { canonical: `/${slug}` };
   }
 
   return metadata;
@@ -38,7 +38,7 @@ export default async function CustomPage({ params }) {
   } catch (err) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-32">
-        <h1 className="text-2xl font-bold">Database Required</h1>
+        <h1 className="text-2xl font-bold text-slate-300">Database Connection Required</h1>
       </div>
     );
   }
@@ -53,6 +53,7 @@ export default async function CustomPage({ params }) {
   const styleRegex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
   let styleMatch;
   let extractedStyles = [];
+  styleRegex.lastIndex = 0;
   while ((styleMatch = styleRegex.exec(rawHtml)) !== null) {
     if (styleMatch[1].trim()) {
       extractedStyles.push(styleMatch[1]);
@@ -70,6 +71,7 @@ export default async function CustomPage({ params }) {
     scriptsToExecute.push({ type: 'inline', content: page.js_content });
   }
 
+  scriptRegex.lastIndex = 0;
   while ((scriptMatch = scriptRegex.exec(htmlWithoutStyles)) !== null) {
     const attrs = scriptMatch[1] || '';
     const content = scriptMatch[2] || '';
@@ -89,7 +91,17 @@ export default async function CustomPage({ params }) {
     }
   }
 
-  const finalHtml = htmlWithoutStyles.replace(scriptRegex, '');
+  scriptRegex.lastIndex = 0;
+  let finalHtml = htmlWithoutStyles.replace(scriptRegex, '');
+  
+  // 3. Clean up DOCTYPE, html, head, and body tags to prevent hydration mismatch
+  finalHtml = finalHtml
+    .replace(/<!DOCTYPE[^>]*>/gi, '')
+    .replace(/<html\b[^>]*>/gi, '')
+    .replace(/<\/html>/gi, '')
+    .replace(/<head\b[^>]*>([\s\S]*?)<\/head>/gi, '') // Usually we don't want head content inside body div
+    .replace(/<body\b[^>]*>/gi, '')
+    .replace(/<\/body>/gi, '');
 
   return (
     <>

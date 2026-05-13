@@ -694,7 +694,7 @@ export default function AdminPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-semibold mb-1">Canonical URL</label>
-                        <input type="url" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.canonical_url} onChange={(e) => setCustomPageForm({...customPageForm, canonical_url: e.target.value})} placeholder="https://findmyvakeel.com/p/..." />
+                        <input type="url" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.canonical_url} onChange={(e) => setCustomPageForm({...customPageForm, canonical_url: e.target.value})} placeholder="https://findmyvakeel.com/..." />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold mb-1">Meta Keywords (Comma separated)</label>
@@ -725,7 +725,7 @@ export default function AdminPage() {
                     <div key={page.slug} className="p-6 flex items-center justify-between">
                       <div>
                         <h4 className="font-bold text-brand-dark">{page.title || page.slug}</h4>
-                        <a href={`/p/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/p/{page.slug}</a>
+                        <a href={`/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/{page.slug}</a>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => startEditCustomPage(page)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center">

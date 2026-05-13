@@ -110,17 +110,60 @@ export async function updateStaticSeo(route, data) {
 // Custom Pages API
 export async function getCustomPages() {
   const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS custom_pages (
+      slug TEXT PRIMARY KEY,
+      title TEXT,
+      html_content TEXT,
+      css_content TEXT,
+      js_content TEXT,
+      meta_description TEXT,
+      canonical_url TEXT,
+      schema_markup TEXT,
+      keywords TEXT,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
   return await sql`SELECT slug, title, updated_at FROM custom_pages ORDER BY updated_at DESC`;
 }
 
 export async function getCustomPage(slug) {
   const sql = getSql();
+  // Ensure table exists
+  await sql`
+    CREATE TABLE IF NOT EXISTS custom_pages (
+      slug TEXT PRIMARY KEY,
+      title TEXT,
+      html_content TEXT,
+      css_content TEXT,
+      js_content TEXT,
+      meta_description TEXT,
+      canonical_url TEXT,
+      schema_markup TEXT,
+      keywords TEXT,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
   const res = await sql`SELECT * FROM custom_pages WHERE slug = ${slug}`;
   return res[0] || null;
 }
 
 export async function updateCustomPage(slug, data) {
   const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS custom_pages (
+      slug TEXT PRIMARY KEY,
+      title TEXT,
+      html_content TEXT,
+      css_content TEXT,
+      js_content TEXT,
+      meta_description TEXT,
+      canonical_url TEXT,
+      schema_markup TEXT,
+      keywords TEXT,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
   return await sql`
     INSERT INTO custom_pages (slug, title, html_content, css_content, js_content, meta_description, canonical_url, schema_markup, keywords)
     VALUES (${slug}, ${data.title}, ${data.html_content}, ${data.css_content}, ${data.js_content}, ${data.meta_description}, ${data.canonical_url}, ${data.schema_markup}, ${data.keywords})

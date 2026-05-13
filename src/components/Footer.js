@@ -35,7 +35,7 @@ export default async function Footer() {
               {getContent('description', "India's most trusted legal marketplace. Connecting clients with verified advocates across 100+ cities.")}
             </p>
             <div className="flex gap-3">
-              <a href={getContent('facebook_url', '#')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
+              <a href={getContent('facebook_url', 'https://www.facebook.com/findmyvakeel/')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
                 <i className="fab fa-facebook-f"></i>
               </a>
               <a href={getContent('twitter_url', '#')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
@@ -44,7 +44,7 @@ export default async function Footer() {
               <a href={getContent('linkedin_url', '#')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
                 <i className="fab fa-linkedin-in"></i>
               </a>
-              <a href={getContent('instagram_url', '#')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
+              <a href={getContent('instagram_url', 'https://www.instagram.com/findmyvakeel/')} className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-gold hover:text-brand-dark transition-all">
                 <i className="fab fa-instagram"></i>
               </a>
             </div>

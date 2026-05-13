@@ -27,7 +27,8 @@ export default function SafeScriptExecution({ scripts }) {
           loadScript(index + 1);
         };
       } else {
-        script.text = scriptData.content;
+        // Wrap inline script in an IIFE to avoid redeclaration errors (e.g. const/let)
+        script.text = `(function() { ${scriptData.content} })();`;
         containerRef.current.appendChild(script);
         loadScript(index + 1);
         return; // Already appended
