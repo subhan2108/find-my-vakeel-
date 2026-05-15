@@ -121,10 +121,11 @@ export async function getCustomPages() {
       canonical_url TEXT,
       schema_markup TEXT,
       keywords TEXT,
+      tag TEXT,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
-  return await sql`SELECT slug, title, updated_at FROM custom_pages ORDER BY updated_at DESC`;
+  return await sql`SELECT slug, title, tag, updated_at FROM custom_pages ORDER BY updated_at DESC`;
 }
 
 export async function getCustomPage(slug) {
@@ -141,6 +142,7 @@ export async function getCustomPage(slug) {
       canonical_url TEXT,
       schema_markup TEXT,
       keywords TEXT,
+      tag TEXT,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
@@ -161,12 +163,13 @@ export async function updateCustomPage(slug, data) {
       canonical_url TEXT,
       schema_markup TEXT,
       keywords TEXT,
+      tag TEXT,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;
   return await sql`
-    INSERT INTO custom_pages (slug, title, html_content, css_content, js_content, meta_description, canonical_url, schema_markup, keywords)
-    VALUES (${slug}, ${data.title}, ${data.html_content}, ${data.css_content}, ${data.js_content}, ${data.meta_description}, ${data.canonical_url}, ${data.schema_markup}, ${data.keywords})
+    INSERT INTO custom_pages (slug, title, html_content, css_content, js_content, meta_description, canonical_url, schema_markup, keywords, tag)
+    VALUES (${slug}, ${data.title}, ${data.html_content}, ${data.css_content}, ${data.js_content}, ${data.meta_description}, ${data.canonical_url}, ${data.schema_markup}, ${data.keywords}, ${data.tag || null})
     ON CONFLICT (slug) DO UPDATE SET
       title = EXCLUDED.title,
       html_content = EXCLUDED.html_content,
@@ -176,9 +179,15 @@ export async function updateCustomPage(slug, data) {
       canonical_url = EXCLUDED.canonical_url,
       schema_markup = EXCLUDED.schema_markup,
       keywords = EXCLUDED.keywords,
+      tag = EXCLUDED.tag,
       updated_at = CURRENT_TIMESTAMP
     RETURNING *
   `;
+}
+
+export async function getCustomPagesByTag(tag) {
+  const sql = getSql();
+  return await sql`SELECT slug, title, updated_at FROM custom_pages WHERE tag = ${tag} ORDER BY title ASC`;
 }
 
 export async function deleteCustomPage(slug) {

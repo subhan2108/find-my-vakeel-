@@ -1,9 +1,12 @@
-import { getCustomPages, updateCustomPage } from '@/lib/db';
+import { getCustomPages, updateCustomPage, getCustomPagesByTag } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const pages = await getCustomPages();
+    const { searchParams } = new URL(request.url);
+    const tag = searchParams.get('tag');
+    
+    const pages = tag ? await getCustomPagesByTag(tag) : await getCustomPages();
     return NextResponse.json(pages);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

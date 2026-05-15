@@ -32,7 +32,8 @@ export default function AdminPage() {
     meta_description: '',
     canonical_url: '',
     schema_markup: '',
-    keywords: ''
+    keywords: '',
+    tag: ''
   });
   const [formData, setFormData] = useState({
     title: '',
@@ -184,7 +185,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         alert('Custom page saved successfully!');
-        setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+        setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', tag: '' });
         setEditingCustomPageSlug(null);
         fetchCustomPages();
       }
@@ -207,7 +208,8 @@ export default function AdminPage() {
         meta_description: page.meta_description || '',
         canonical_url: page.canonical_url || '',
         schema_markup: page.schema_markup || '',
-        keywords: page.keywords || ''
+        keywords: page.keywords || '',
+        tag: page.tag || ''
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -217,7 +219,7 @@ export default function AdminPage() {
 
   const cancelEditCustomPage = () => {
     setEditingCustomPageSlug(null);
-    setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+    setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', tag: '' });
   };
 
   const deleteCustomPage = async (slug) => {
@@ -681,6 +683,10 @@ export default function AdminPage() {
                     <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.title} onChange={(e) => setCustomPageForm({...customPageForm, title: e.target.value})} placeholder="About Find My Vakeel" />
                   </div>
                   <div>
+                    <label className="block text-sm font-semibold mb-1">Tag (e.g. areas)</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.tag} onChange={(e) => setCustomPageForm({...customPageForm, tag: e.target.value})} placeholder="Use 'areas' for navbar listing" />
+                  </div>
+                  <div>
                     <label className="block text-sm font-semibold mb-1">Code (HTML, CSS &lt;style&gt;, JS &lt;script&gt;)</label>
                     <textarea className="w-full border border-slate-200 rounded-lg p-4 text-sm h-96 font-mono text-xs focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50" value={customPageForm.html_content} onChange={(e) => setCustomPageForm({...customPageForm, html_content: e.target.value})} placeholder="<style> body { background: #fff; } </style>&#10;&#10;<div>Hello World</div>&#10;&#10;<script> console.log('loaded'); </script>"></textarea>
                   </div>
@@ -725,7 +731,10 @@ export default function AdminPage() {
                     <div key={page.slug} className="p-6 flex items-center justify-between">
                       <div>
                         <h4 className="font-bold text-brand-dark">{page.title || page.slug}</h4>
-                        <a href={`/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/{page.slug}</a>
+                        <div className="flex gap-2 items-center">
+                          <a href={`/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/{page.slug}</a>
+                          {page.tag && <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">{page.tag}</span>}
+                        </div>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => startEditCustomPage(page)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center">
