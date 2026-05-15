@@ -195,6 +195,13 @@ export async function deleteCustomPage(slug) {
   return await sql`DELETE FROM custom_pages WHERE slug = ${slug}`;
 }
 
+// Storage Usage API
+export async function getDatabaseSize() {
+  const sql = getSql();
+  const res = await sql`SELECT pg_database_size(current_database()) as size_bytes`;
+  return res[0]?.size_bytes || 0;
+}
+
 // Export raw sql for migrations/setup
 export const sql = (strings, ...values) => {
   const s = getSql();

@@ -48,6 +48,7 @@ export default function AdminPage() {
     schema_markup: '',
     keywords: ''
   });
+  const [storageInfo, setStorageInfo] = useState(null);
 
   // Check for existing session
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function AdminPage() {
       fetchPosts();
       fetchSections();
       fetchCustomPages();
+      fetchStorageInfo();
     } else {
       setLoading(false);
     }
@@ -171,6 +173,16 @@ export default function AdminPage() {
       setCustomPages(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchStorageInfo = async () => {
+    try {
+      const res = await fetch('/api/admin/storage');
+      const data = await res.json();
+      if (res.ok) setStorageInfo(data);
+    } catch (err) {
+      console.error('Failed to fetch storage info:', err);
     }
   };
 
@@ -391,10 +403,34 @@ export default function AdminPage() {
               <p className="text-slate-500">Manage your legal articles and blog posts</p>
             </div>
             <div className="flex gap-4">
-              <a href="/blog" target="_blank" className="bg-white border border-slate-200 px-6 py-2 rounded-lg font-semibold hover:bg-slate-50">View Blog</a>
+              <a href="/blog" target="_blank" className="bg-white border border-slate-200 px-6 py-2 rounded-lg font-semibold hover:bg-slate-50 transition-colors">View Blog</a>
               <button onClick={handleLogout} className="bg-brand-dark text-white px-6 py-2 rounded-lg font-semibold hover:bg-slate-800 transition-colors">Logout</button>
             </div>
           </div>
+
+          {/* Storage Usage Bar */}
+          {storageInfo && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-database text-brand-gold"></i>
+                  <span className="text-sm font-bold text-brand-dark uppercase tracking-widest">Database Storage Usage</span>
+                </div>
+                <span className="text-xs font-bold text-slate-500">{storageInfo.used_formatted} / {storageInfo.limit_formatted} ({storageInfo.percent_used}%)</span>
+              </div>
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                <div 
+                  className={`h-full transition-all duration-1000 ${parseFloat(storageInfo.percent_used) > 90 ? 'bg-red-500' : parseFloat(storageInfo.percent_used) > 70 ? 'bg-yellow-500' : 'bg-brand-gold'}`} 
+                  style={{ width: `${storageInfo.percent_used}%` }}
+                ></div>
+              </div>
+              {parseFloat(storageInfo.percent_used) > 80 && (
+                <p className="text-[10px] text-red-500 font-bold mt-2 uppercase tracking-tight">
+                  <i className="fas fa-warning mr-1"></i> Storage almost full. Consider optimizing or upgrading your plan.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-4 mb-8">
             <button 
