@@ -192,7 +192,7 @@ export async function getCustomPagesByTag(tag) {
 
 export async function deleteCustomPage(slug) {
   const sql = getSql();
-  return await sql`DELETE FROM custom_pages WHERE slug = ${slug}`;
+  return await sql`DELETE FROM custom_pages WHERE slug = ${slug} RETURNING slug`;
 }
 
 // Storage Usage API

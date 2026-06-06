@@ -208,7 +208,8 @@ export default function AdminPage() {
 
   const startEditCustomPage = async (pageStub) => {
     try {
-      const res = await fetch(`/api/custom-pages/${pageStub.slug}`);
+      const res = await fetch(`/api/custom-pages/${encodeURIComponent(pageStub.slug)}`);
+      if (!res.ok) throw new Error('Failed to load page');
       const page = await res.json();
       setEditingCustomPageSlug(page.slug);
       setCustomPageForm({
@@ -237,9 +238,16 @@ export default function AdminPage() {
   const deleteCustomPage = async (slug) => {
     if (!confirm('Are you sure you want to delete this custom page?')) return;
     try {
-      const res = await fetch(`/api/custom-pages/${slug}`, { method: 'DELETE' });
+      const res = await fetch('/api/custom-pages', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug })
+      });
       if (res.ok) {
         fetchCustomPages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to delete custom page');
       }
     } catch (err) {
       alert('Failed to delete custom page');
@@ -764,19 +772,19 @@ export default function AdminPage() {
                   {customPages.length === 0 ? (
                     <div className="p-12 text-center text-slate-400">No custom pages yet.</div>
                   ) : customPages.map((page) => (
-                    <div key={page.slug} className="p-6 flex items-center justify-between">
-                      <div>
-                        <h4 className="font-bold text-brand-dark">{page.title || page.slug}</h4>
-                        <div className="flex gap-2 items-center">
-                          <a href={`/${page.slug}`} target="_blank" className="text-xs text-brand-blue hover:underline">/{page.slug}</a>
-                          {page.tag && <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">{page.tag}</span>}
+                    <div key={page.slug} className="p-6 flex items-start gap-4">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-brand-dark truncate">{page.title?.trim() || 'Untitled custom page'}</h4>
+                        <div className="flex gap-2 items-center min-w-0">
+                          <a href={`/${encodeURIComponent(page.slug)}`} target="_blank" className="min-w-0 truncate text-xs text-brand-blue hover:underline">/{page.slug}</a>
+                          {page.tag && <span className="shrink-0 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded">{page.tag}</span>}
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => startEditCustomPage(page)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center">
+                      <div className="shrink-0 flex gap-2">
+                        <button onClick={() => startEditCustomPage(page)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center" title="Edit Page">
                           <i className="fas fa-edit"></i>
                         </button>
-                        <button onClick={() => deleteCustomPage(page.slug)} className="w-10 h-10 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                        <button onClick={() => deleteCustomPage(page.slug)} className="w-10 h-10 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center" title="Delete Page">
                           <i className="fas fa-trash-can"></i>
                         </button>
                       </div>
