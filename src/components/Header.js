@@ -44,6 +44,7 @@ export default function Header() {
           <nav className="hidden xl:flex items-center gap-2">
             {[
               { label: 'Find Lawyer', href: '/#find-lawyer' },
+              { label: 'Legal Services', href: '/legal-services' },
               { label: 'Areas', href: '/areas' },
               { label: 'Articles', href: '/blog' },
               { label: 'How It Works', href: '/#how-it-works' },
@@ -90,6 +91,7 @@ export default function Header() {
         <div className="flex flex-col h-full pt-24 px-6 gap-4 overflow-y-auto">
           {[
             { label: 'Find a Lawyer', href: '/#find-lawyer', icon: 'fa-search' },
+            { label: 'Legal Services', href: '/legal-services', icon: 'fa-gavel' },
             { label: 'Areas', href: '/areas', icon: 'fa-balance-scale' },
             { label: 'Legal Articles', href: '/blog', icon: 'fa-newspaper' },
             { label: 'How It Works', href: '/#how-it-works', icon: 'fa-info-circle' },

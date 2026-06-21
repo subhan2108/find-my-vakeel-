@@ -52,6 +52,21 @@ export default function AdminPage() {
     slug: ''
   });
   const [storageInfo, setStorageInfo] = useState(null);
+  const [legalCategories, setLegalCategories] = useState([]);
+  const [legalServices, setLegalServices] = useState([]);
+  const [editingLegalServiceId, setEditingLegalServiceId] = useState(null);
+  const [legalServiceForm, setLegalServiceForm] = useState({
+    title: '',
+    description: '',
+    category_id: '',
+    icon: 'fa-gavel',
+    slug: '',
+    content: '',
+    meta_title: '',
+    meta_description: '',
+    keywords: '',
+    schema_markup: ''
+  });
 
   // Check for existing session
   useEffect(() => {
@@ -62,6 +77,8 @@ export default function AdminPage() {
       fetchSections();
       fetchCustomPages();
       fetchStorageInfo();
+      fetchLegalCategories();
+      fetchLegalServices();
     } else {
       setLoading(false);
     }
@@ -187,6 +204,72 @@ export default function AdminPage() {
     } catch (err) {
       console.error('Failed to fetch storage info:', err);
     }
+  };
+
+  const fetchLegalCategories = async () => {
+    try {
+      const res = await fetch('/api/legal-categories');
+      if (res.ok) setLegalCategories(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const fetchLegalServices = async () => {
+    try {
+      const res = await fetch('/api/legal-services');
+      if (res.ok) setLegalServices(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleLegalServiceSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Auto-generate slug from title if blank
+      const formPayload = { ...legalServiceForm };
+      if (!formPayload.slug) {
+        formPayload.slug = formPayload.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      }
+      const url = editingLegalServiceId ? `/api/legal-services/${editingLegalServiceId}` : '/api/legal-services';
+      const method = editingLegalServiceId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formPayload)
+      });
+      if (res.ok) {
+        alert(editingLegalServiceId ? 'Service updated!' : 'Service created!');
+        setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' });
+        setEditingLegalServiceId(null);
+        fetchLegalServices();
+      } else {
+        alert('Failed to save service');
+      }
+    } catch (err) {
+      alert('Failed to save service');
+    }
+  };
+
+  const startEditLegalService = (service) => {
+    setEditingLegalServiceId(service.id);
+    setLegalServiceForm({
+      title: service.title || '',
+      description: service.description || '',
+      category_id: service.category_id || '',
+      icon: service.icon || 'fa-gavel',
+      slug: service.slug || '',
+      content: service.content || '',
+      meta_title: service.meta_title || '',
+      meta_description: service.meta_description || '',
+      keywords: service.keywords || '',
+      schema_markup: service.schema_markup || ''
+    });
+  };
+
+  const deleteLegalService = async (id) => {
+    if (!confirm('Are you sure you want to delete this service?')) return;
+    try {
+      const res = await fetch(`/api/legal-services/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchLegalServices();
+    } catch (err) { alert('Failed to delete service'); }
   };
 
   const validateCustomPageForm = () => {
@@ -553,6 +636,12 @@ export default function AdminPage() {
             >
               Custom HTML Pages
             </button>
+            <button 
+              onClick={() => setActiveTab('legalServices')} 
+              className={`px-6 py-2 rounded-lg font-bold transition-colors ${activeTab === 'legalServices' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-slate-500 border border-slate-200'}`}
+            >
+              Legal Services
+            </button>
           </div>
 
           {activeTab === 'posts' ? (
@@ -910,7 +999,7 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
-          ) : (
+          ) : activeTab === 'seo' ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-3xl">
             <h3 className="font-bold text-lg mb-6">Manage Static Pages SEO</h3>
             <div className="mb-8">
@@ -950,7 +1039,103 @@ export default function AdminPage() {
               </button>
             </form>
           </div>
-          )}
+          ) : activeTab === 'legalServices' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 sticky top-32">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-brand-dark">
+                    {editingLegalServiceId ? 'Edit Legal Service' : 'Create Legal Service'}
+                  </h3>
+                  {editingLegalServiceId && (
+                    <button onClick={() => { setEditingLegalServiceId(null); setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' }); }} className="text-xs text-red-500 font-bold hover:underline">Cancel Edit</button>
+                  )}
+                </div>
+                <form onSubmit={handleLegalServiceSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Title</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.title} onChange={(e) => setLegalServiceForm({...legalServiceForm, title: e.target.value})} placeholder="e.g. Divorce" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Category</label>
+                    <select className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.category_id} onChange={(e) => setLegalServiceForm({...legalServiceForm, category_id: e.target.value})} required>
+                      <option value="">Select Category</option>
+                      {legalCategories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Description</label>
+                    <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-24 focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.description} onChange={(e) => setLegalServiceForm({...legalServiceForm, description: e.target.value})} placeholder="Short description..." required></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Icon (FontAwesome Class)</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.icon} onChange={(e) => setLegalServiceForm({...legalServiceForm, icon: e.target.value})} placeholder="e.g. fa-divorce" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Slug (URL)</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.slug} onChange={(e) => setLegalServiceForm({...legalServiceForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')})} placeholder="e.g. divorce-lawyer (auto-generated if left blank)" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Full Content (Markdown or HTML)</label>
+                    <textarea className="w-full border border-slate-200 rounded-lg p-3 text-sm h-48 focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.content} onChange={(e) => setLegalServiceForm({...legalServiceForm, content: e.target.value})} placeholder="Detailed description of the service..." required></textarea>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">SEO Settings</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Title</label>
+                        <input type="text" className="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.meta_title} onChange={(e) => setLegalServiceForm({...legalServiceForm, meta_title: e.target.value})} placeholder="SEO Title" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Meta Description</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-2 text-xs h-16 focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.meta_description} onChange={(e) => setLegalServiceForm({...legalServiceForm, meta_description: e.target.value})} placeholder="SEO Description"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Keywords</label>
+                        <input type="text" className="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.keywords} onChange={(e) => setLegalServiceForm({...legalServiceForm, keywords: e.target.value})} placeholder="lawyer, legal, advice" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Schema Markup (JSON-LD)</label>
+                        <textarea className="w-full border border-slate-200 rounded-lg p-2 text-xs h-24 focus:ring-2 focus:ring-brand-blue outline-none font-mono" value={legalServiceForm.schema_markup} onChange={(e) => setLegalServiceForm({...legalServiceForm, schema_markup: e.target.value})} placeholder='{"@context": "https://schema.org"...}'></textarea>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full btn-gold text-brand-dark py-3 rounded-lg font-bold">
+                    {editingLegalServiceId ? 'Update Service' : 'Add Service'}
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-lg">Existing Services</h3>
+                  <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">{legalServices.length} Services</span>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {legalServices.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400">No services found</div>
+                  ) : legalServices.map((service) => (
+                    <div key={service.id} className="p-6 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                      <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+                        <i className={`fas ${service.icon}`}></i>
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <h4 className="font-bold text-brand-dark">{service.title}</h4>
+                        <p className="text-xs text-slate-500">{legalCategories.find(c => c.id === service.category_id)?.label}</p>
+                        {service.slug && <a href={`/legal-services/${service.slug}`} target="_blank" className="text-[10px] text-brand-blue hover:underline truncate block">/legal-services/{service.slug}</a>}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => startEditLegalService(service)} className="w-10 h-10 rounded-lg bg-slate-50 text-slate-400 hover:bg-brand-blue hover:text-white transition-all flex items-center justify-center"><i className="fas fa-edit"></i></button>
+                        <button onClick={() => deleteLegalService(service.id)} className="w-10 h-10 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"><i className="fas fa-trash-can"></i></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          ) : null}
         </div>
       </div>
     </main>

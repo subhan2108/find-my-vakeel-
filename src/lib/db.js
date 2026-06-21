@@ -210,6 +210,117 @@ export async function getDatabaseSize() {
   return res[0]?.size_bytes || 0;
 }
 
+// Legal Services API
+export async function getLegalCategories() {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS legal_service_categories (
+      id TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      icon TEXT,
+      bg_color TEXT,
+      icon_color TEXT,
+      card_bg_from TEXT,
+      card_bg_to TEXT,
+      description TEXT
+    )
+  `;
+  
+  const countRes = await sql`SELECT COUNT(*) FROM legal_service_categories`;
+  if (parseInt(countRes[0].count) === 0) {
+    const seed = [
+      { id: 'family', label: 'Family Law', icon: 'fa-users', description: 'Matrimonial disputes, custody, divorce & family settlements', bg_color: 'bg-blue-100', icon_color: 'text-blue-600', card_bg_from: 'from-blue-50', card_bg_to: 'to-blue-100' },
+      { id: 'criminal', label: 'Criminal Law', icon: 'fa-gavel', description: 'Bail, FIR, criminal defense, cyber crime & white collar cases', bg_color: 'bg-red-100', icon_color: 'text-red-600', card_bg_from: 'from-red-50', card_bg_to: 'to-red-100' },
+      { id: 'property', label: 'Property Law', icon: 'fa-building', description: 'Property disputes, land cases, registration, builder disputes & RERA', bg_color: 'bg-green-100', icon_color: 'text-green-600', card_bg_from: 'from-green-50', card_bg_to: 'to-green-100' },
+      { id: 'civil', label: 'Civil Matters', icon: 'fa-balance-scale', description: 'Recovery suits, injunctions, contracts, appeals & consumer disputes', bg_color: 'bg-purple-100', icon_color: 'text-purple-600', card_bg_from: 'from-purple-50', card_bg_to: 'to-purple-100' },
+      { id: 'corporate', label: 'Corporate Law', icon: 'fa-briefcase', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'banking', label: 'Banking', icon: 'fa-university', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'consumer', label: 'Consumer', icon: 'fa-shopping-cart', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'labour', label: 'Labour', icon: 'fa-hard-hat', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'tax', label: 'Tax', icon: 'fa-file-invoice-dollar', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'ip', label: 'IP Rights', icon: 'fa-trademark', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'docs', label: 'Documentation', icon: 'fa-file-alt', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'cyber', label: 'Cyber Law', icon: 'fa-laptop', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' },
+      { id: 'court', label: 'Court Services', icon: 'fa-landmark', description: '', bg_color: 'bg-slate-100', icon_color: 'text-slate-600', card_bg_from: 'from-slate-50', card_bg_to: 'to-slate-100' }
+    ];
+    for (const c of seed) {
+      await sql`INSERT INTO legal_service_categories (id, label, icon, description, bg_color, icon_color, card_bg_from, card_bg_to) VALUES (${c.id}, ${c.label}, ${c.icon}, ${c.description}, ${c.bg_color}, ${c.icon_color}, ${c.card_bg_from}, ${c.card_bg_to})`;
+    }
+  }
+  return await sql`SELECT * FROM legal_service_categories ORDER BY id ASC`;
+}
+
+export async function getLegalServices() {
+  const sql = getSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS legal_services (
+      id SERIAL PRIMARY KEY,
+      category_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      icon TEXT,
+      slug TEXT,
+      content TEXT,
+      image TEXT,
+      meta_title TEXT,
+      meta_description TEXT,
+      keywords TEXT,
+      schema_markup TEXT
+    )
+  `;
+  
+  // Safe migrations for new columns on existing tables
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS slug TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS content TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS image TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS meta_title TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS meta_description TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS keywords TEXT`; } catch(e) {}
+  try { await sql`ALTER TABLE legal_services ADD COLUMN IF NOT EXISTS schema_markup TEXT`; } catch(e) {}
+
+  return await sql`SELECT * FROM legal_services ORDER BY id DESC`;
+}
+
+export async function getLegalServiceBySlug(slug) {
+  const sql = getSql();
+  const res = await sql`SELECT * FROM legal_services WHERE slug = ${slug}`;
+  return res.length > 0 ? res[0] : null;
+}
+
+export async function createLegalService(data) {
+  const sql = getSql();
+  return await sql`
+    INSERT INTO legal_services (category_id, title, description, icon, slug, content, image, meta_title, meta_description, keywords, schema_markup)
+    VALUES (${data.category_id}, ${data.title}, ${data.description || ''}, ${data.icon || ''}, ${data.slug || ''}, ${data.content || ''}, ${data.image || ''}, ${data.meta_title || ''}, ${data.meta_description || ''}, ${data.keywords || ''}, ${data.schema_markup || ''})
+    RETURNING *
+  `;
+}
+
+export async function updateLegalService(id, data) {
+  const sql = getSql();
+  return await sql`
+    UPDATE legal_services
+    SET category_id = ${data.category_id},
+        title = ${data.title},
+        description = ${data.description || ''},
+        icon = ${data.icon || ''},
+        slug = ${data.slug || ''},
+        content = ${data.content || ''},
+        image = ${data.image || ''},
+        meta_title = ${data.meta_title || ''},
+        meta_description = ${data.meta_description || ''},
+        keywords = ${data.keywords || ''},
+        schema_markup = ${data.schema_markup || ''}
+    WHERE id = ${id}
+    RETURNING *
+  `;
+}
+
+export async function deleteLegalService(id) {
+  const sql = getSql();
+  return await sql`DELETE FROM legal_services WHERE id = ${id}`;
+}
+
 // Export raw sql for migrations/setup
 export const sql = (strings, ...values) => {
   const s = getSql();
