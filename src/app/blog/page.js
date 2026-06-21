@@ -98,7 +98,7 @@ export default async function BlogPage() {
             posts.map((post, idx) => (
               <Link 
                 key={post.id} 
-                href={`/blog/${post.id}`}
+                href={`/blog/${post.slug || post.id}`}
                 className="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-700 ease-out hover:-translate-y-2 hover:scale-[1.02] flex flex-col h-full"
                 data-aos="fade-up"
                 data-aos-delay={idx * 100}

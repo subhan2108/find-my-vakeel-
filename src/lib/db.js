@@ -14,15 +14,22 @@ export async function getPosts() {
 
 export async function getPostById(id) {
   const sql = getSql();
-  const posts = await sql`SELECT * FROM posts WHERE id = ${id}`;
-  return posts[0];
+  // Check if id is an integer or string slug
+  const isNumeric = /^\d+$/.test(id);
+  if (isNumeric) {
+    const posts = await sql`SELECT * FROM posts WHERE id = ${parseInt(id, 10)} OR slug = ${id}`;
+    return posts[0];
+  } else {
+    const posts = await sql`SELECT * FROM posts WHERE slug = ${id}`;
+    return posts[0];
+  }
 }
 
 export async function createPost(post) {
   const sql = getSql();
   return await sql`
-    INSERT INTO posts (title, content, image, type, category, date, author, meta_title, meta_description, canonical_url, schema_markup, keywords)
-    VALUES (${post.title}, ${post.content}, ${post.image}, ${post.type}, ${post.category}, ${post.date}, ${post.author || 'Editorial Team'}, ${post.meta_title || null}, ${post.meta_description || null}, ${post.canonical_url || null}, ${post.schema_markup || null}, ${post.keywords || null})
+    INSERT INTO posts (title, content, image, type, category, date, author, meta_title, meta_description, canonical_url, schema_markup, keywords, slug)
+    VALUES (${post.title}, ${post.content}, ${post.image}, ${post.type}, ${post.category}, ${post.date}, ${post.author || 'Editorial Team'}, ${post.meta_title || null}, ${post.meta_description || null}, ${post.canonical_url || null}, ${post.schema_markup || null}, ${post.keywords || null}, ${post.slug || null})
     RETURNING *
   `;
 }
@@ -46,7 +53,8 @@ export async function updatePost(id, post) {
         meta_description = ${post.meta_description || null},
         canonical_url = ${post.canonical_url || null},
         schema_markup = ${post.schema_markup || null},
-        keywords = ${post.keywords || null}
+        keywords = ${post.keywords || null},
+        slug = ${post.slug || null}
     WHERE id = ${id}
     RETURNING *
   `;

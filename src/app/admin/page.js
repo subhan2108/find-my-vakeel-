@@ -35,6 +35,8 @@ export default function AdminPage() {
     keywords: '',
     tag: ''
   });
+  const [customPageValidationErrors, setCustomPageValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -46,7 +48,8 @@ export default function AdminPage() {
     meta_description: '',
     canonical_url: '',
     schema_markup: '',
-    keywords: ''
+    keywords: '',
+    slug: ''
   });
   const [storageInfo, setStorageInfo] = useState(null);
 
@@ -186,9 +189,40 @@ export default function AdminPage() {
     }
   };
 
+  const validateCustomPageForm = () => {
+    const errors = {};
+    if (!customPageForm.slug || customPageForm.slug.trim() === '') {
+      errors.slug = 'Slug is required';
+    } else if (!/^[a-z0-9\-]+$/.test(customPageForm.slug.trim())) {
+      errors.slug = 'Slug must only contain lowercase letters, numbers, and hyphens';
+    } else {
+      const duplicate = customPages.find(p => p.slug === customPageForm.slug.trim() && p.slug !== editingCustomPageSlug);
+      if (duplicate) {
+        errors.slug = 'This slug is already in use by another custom page';
+      }
+    }
+
+    if (!customPageForm.title || customPageForm.title.trim() === '') {
+      errors.title = 'Title is required';
+    }
+
+    if (!customPageForm.tag || customPageForm.tag.trim() === '') {
+      errors.tag = 'Tag is required';
+    }
+
+    if (!customPageForm.html_content || customPageForm.html_content.trim() === '') {
+      errors.html_content = 'Code content is required';
+    }
+
+    setCustomPageValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCustomPageSubmit = async (e) => {
     e.preventDefault();
-    if (!customPageForm.slug) return alert('Slug is required');
+    if (!validateCustomPageForm()) {
+      return;
+    }
     try {
       const res = await fetch('/api/custom-pages', {
         method: 'PUT',
@@ -198,6 +232,7 @@ export default function AdminPage() {
       if (res.ok) {
         alert('Custom page saved successfully!');
         setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', tag: '' });
+        setCustomPageValidationErrors({});
         setEditingCustomPageSlug(null);
         fetchCustomPages();
       }
@@ -224,6 +259,7 @@ export default function AdminPage() {
         keywords: page.keywords || '',
         tag: page.tag || ''
       });
+      setCustomPageValidationErrors({});
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       alert('Failed to load full page data');
@@ -233,6 +269,7 @@ export default function AdminPage() {
   const cancelEditCustomPage = () => {
     setEditingCustomPageSlug(null);
     setCustomPageForm({ slug: '', title: '', html_content: '', css_content: '', js_content: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', tag: '' });
+    setCustomPageValidationErrors({});
   };
 
   const deleteCustomPage = async (slug) => {
@@ -303,23 +340,71 @@ export default function AdminPage() {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.title || formData.title.trim().length < 5) {
+      errors.title = 'Title must be at least 5 characters long';
+    }
+    if (!formData.content || formData.content.trim().length < 20) {
+      errors.content = 'Content must be at least 20 characters long';
+    }
+    if (formData.slug) {
+      const trimmedSlug = formData.slug.trim();
+      if (!/^[a-z0-9\-]+$/.test(trimmedSlug)) {
+        errors.slug = 'Slug must only contain lowercase letters, numbers, and hyphens';
+      } else if (trimmedSlug.startsWith('-') || trimmedSlug.endsWith('-')) {
+        errors.slug = 'Slug cannot start or end with a hyphen';
+      } else {
+        const duplicate = posts.find(p => p.slug === trimmedSlug && p.id !== editingId);
+        if (duplicate) {
+          errors.slug = 'This slug is already in use by another post';
+        }
+      }
+    }
+    if (formData.image) {
+      try {
+        const u = new URL(formData.image.trim());
+        if (!['http:', 'https:'].includes(u.protocol)) {
+          errors.image = 'Image URL must start with http:// or https://';
+        }
+      } catch {
+        errors.image = 'Please enter a valid Image URL (must start with https://)';
+      }
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
     try {
       const url = editingId ? `/api/posts/${editingId}` : '/api/posts';
       const method = editingId ? 'PUT' : 'POST';
       
+      const payload = { 
+        ...formData, 
+        slug: formData.slug ? formData.slug.trim().toLowerCase() : null,
+        date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) 
+      };
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) })
+        body: JSON.stringify(payload)
       });
       
+      const data = await res.json();
       if (res.ok) {
         alert(editingId ? 'Post updated successfully!' : 'Post published successfully!');
-        setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+        setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', slug: '' });
+        setValidationErrors({});
         setEditingId(null);
         fetchPosts();
+      } else {
+        alert(data.error || 'Failed to save post');
       }
     } catch (err) {
       alert('Failed to save post');
@@ -339,14 +424,17 @@ export default function AdminPage() {
       meta_description: post.meta_description || '',
       canonical_url: post.canonical_url || '',
       schema_markup: post.schema_markup || '',
-      keywords: post.keywords || ''
+      keywords: post.keywords || '',
+      slug: post.slug || ''
     });
+    setValidationErrors({});
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '' });
+    setFormData({ title: '', content: '', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80', type: 'blog', category: 'Legal Updates', author: 'Editorial Team', meta_title: '', meta_description: '', canonical_url: '', schema_markup: '', keywords: '', slug: '' });
+    setValidationErrors({});
   };
 
   const deletePost = async (id) => {
@@ -485,12 +573,30 @@ export default function AdminPage() {
                     <label className="block text-sm font-semibold mb-1">Title</label>
                     <input 
                       type="text" 
-                      className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" 
+                      className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${validationErrors.title ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} 
                       value={formData.title || ''}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       placeholder="Article Title"
                       required 
                     />
+                    {validationErrors.title && (
+                      <p className="text-red-500 text-xs mt-1 font-semibold">{validationErrors.title}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Slug / Custom Path (Optional)</label>
+                    <input 
+                      type="text" 
+                      className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${validationErrors.slug ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} 
+                      value={formData.slug || ''}
+                      onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                      placeholder="e.g. how-to-hire-a-lawyer"
+                    />
+                    {validationErrors.slug ? (
+                      <p className="text-red-500 text-xs mt-1 font-semibold">{validationErrors.slug}</p>
+                    ) : (
+                      <p className="text-slate-400 text-[11px] mt-1">If blank, it will default to the ID. Use only lowercase letters, numbers, and hyphens.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Author Name</label>
@@ -506,10 +612,13 @@ export default function AdminPage() {
                     <label className="block text-sm font-semibold mb-1">Image URL</label>
                     <input 
                       type="text" 
-                      className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" 
+                      className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${validationErrors.image ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} 
                       value={formData.image || ''}
                       onChange={(e) => setFormData({...formData, image: e.target.value})}
                     />
+                    {validationErrors.image && (
+                      <p className="text-red-500 text-xs mt-1 font-semibold">{validationErrors.image}</p>
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -536,12 +645,15 @@ export default function AdminPage() {
                   <div>
                     <label className="block text-sm font-semibold mb-1">Content</label>
                     <textarea 
-                      className="w-full border border-slate-200 rounded-lg p-3 text-sm h-40 focus:ring-2 focus:ring-brand-blue outline-none" 
+                      className={`w-full border rounded-lg p-3 text-sm h-40 focus:ring-2 focus:ring-brand-blue outline-none ${validationErrors.content ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} 
                       value={formData.content || ''}
                       onChange={(e) => setFormData({...formData, content: e.target.value})}
                       placeholder="Write your content here..."
                       required
                     ></textarea>
+                    {validationErrors.content && (
+                      <p className="text-red-500 text-xs mt-1 font-semibold">{validationErrors.content}</p>
+                    )}
                   </div>
                   
                   <div className="pt-6 border-t border-slate-100 mt-6">
@@ -720,19 +832,23 @@ export default function AdminPage() {
                 <form onSubmit={handleCustomPageSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1">URL Path / Slug</label>
-                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.slug} onChange={(e) => setCustomPageForm({...customPageForm, slug: e.target.value})} placeholder="e.g. about-us" required disabled={!!editingCustomPageSlug} />
+                    <input type="text" className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${customPageValidationErrors.slug ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} value={customPageForm.slug} onChange={(e) => setCustomPageForm({...customPageForm, slug: e.target.value})} placeholder="e.g. about-us" disabled={!!editingCustomPageSlug} />
+                    {customPageValidationErrors.slug && <p className="text-red-500 text-xs mt-1 font-semibold">{customPageValidationErrors.slug}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Page Title (Meta)</label>
-                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.title} onChange={(e) => setCustomPageForm({...customPageForm, title: e.target.value})} placeholder="About Find My Vakeel" />
+                    <input type="text" className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${customPageValidationErrors.title ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} value={customPageForm.title} onChange={(e) => setCustomPageForm({...customPageForm, title: e.target.value})} placeholder="About Find My Vakeel" />
+                    {customPageValidationErrors.title && <p className="text-red-500 text-xs mt-1 font-semibold">{customPageValidationErrors.title}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Tag (e.g. areas)</label>
-                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={customPageForm.tag} onChange={(e) => setCustomPageForm({...customPageForm, tag: e.target.value})} placeholder="Use 'areas' for navbar listing" />
+                    <input type="text" className={`w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none ${customPageValidationErrors.tag ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} value={customPageForm.tag} onChange={(e) => setCustomPageForm({...customPageForm, tag: e.target.value})} placeholder="Use 'areas' for navbar listing" />
+                    {customPageValidationErrors.tag && <p className="text-red-500 text-xs mt-1 font-semibold">{customPageValidationErrors.tag}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Code (HTML, CSS &lt;style&gt;, JS &lt;script&gt;)</label>
-                    <textarea className="w-full border border-slate-200 rounded-lg p-4 text-sm h-96 font-mono text-xs focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50" value={customPageForm.html_content} onChange={(e) => setCustomPageForm({...customPageForm, html_content: e.target.value})} placeholder="<style> body { background: #fff; } </style>&#10;&#10;<div>Hello World</div>&#10;&#10;<script> console.log('loaded'); </script>"></textarea>
+                    <textarea className={`w-full border rounded-lg p-4 text-sm h-96 font-mono text-xs focus:ring-2 focus:ring-brand-blue outline-none bg-slate-50 ${customPageValidationErrors.html_content ? 'border-red-500 focus:ring-red-200' : 'border-slate-200'}`} value={customPageForm.html_content} onChange={(e) => setCustomPageForm({...customPageForm, html_content: e.target.value})} placeholder="<style> body { background: #fff; } </style>&#10;&#10;<div>Hello World</div>&#10;&#10;<script> console.log('loaded'); </script>"></textarea>
+                    {customPageValidationErrors.html_content && <p className="text-red-500 text-xs mt-1 font-semibold">{customPageValidationErrors.html_content}</p>}
                   </div>
 
                   <div className="pt-6 border-t border-slate-100 mt-6">
