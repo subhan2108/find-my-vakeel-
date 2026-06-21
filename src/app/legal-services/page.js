@@ -216,9 +216,15 @@ function ServiceCard({ service, details, index }) {
       data-aos="fade-up"
       data-aos-delay={(index % 4) * 50}
     >
-      <div className={`icon-box w-14 h-14 bg-gradient-to-br ${bgFrom} ${bgTo} rounded-xl flex items-center justify-center mb-4`}>
-        <i className={`fas ${service.icon} ${iconColor} text-2xl`}></i>
-      </div>
+      {service.image ? (
+        <div className="mb-4 w-full h-32 rounded-xl overflow-hidden relative">
+          <img src={service.image} alt={service.title} className="object-cover w-full h-full transform hover:scale-110 transition duration-500" />
+        </div>
+      ) : (
+        <div className={`icon-box w-14 h-14 bg-gradient-to-br ${bgFrom} ${bgTo} rounded-xl flex items-center justify-center mb-4`}>
+          <i className={`fas ${service.icon} ${iconColor} text-2xl`}></i>
+        </div>
+      )}
       <h3 className="text-lg font-bold text-brand-dark mb-2">
         <Link href={`/legal-services/${service.slug}`} className="hover:text-brand-blue transition">{service.title}</Link>
       </h3>

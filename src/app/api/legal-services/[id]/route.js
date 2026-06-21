@@ -3,7 +3,7 @@ import { updateLegalService, deleteLegalService } from '@/lib/db';
 
 export async function PUT(request, { params }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
     if (!data.title || !data.category_id) {
       return NextResponse.json({ error: 'Title and category_id are required' }, { status: 400 });
@@ -21,7 +21,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await deleteLegalService(id);
     return NextResponse.json({ success: true });
   } catch (error) {
