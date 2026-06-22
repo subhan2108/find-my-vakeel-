@@ -35,9 +35,9 @@ export default async function LegalServiceSlugPage({ params }) {
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 pb-20">
       {service.schema_markup && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: service.schema_markup }}
+        <div 
+          dangerouslySetInnerHTML={{ __html: service.schema_markup }} 
+          style={{ display: 'none' }}
         />
       )}
 
