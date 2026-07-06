@@ -35,9 +35,9 @@ export default async function LegalServiceSlugPage({ params }) {
   return (
     <div className="bg-slate-50 min-h-screen text-slate-800 pb-20">
       {service.schema_markup && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: service.schema_markup }}
+        <div 
+          dangerouslySetInnerHTML={{ __html: service.schema_markup }} 
+          style={{ display: 'none' }}
         />
       )}
 
@@ -56,11 +56,19 @@ export default async function LegalServiceSlugPage({ params }) {
 
       {/* Header Area */}
       <header className="bg-brand-dark text-white py-16 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(212,175,55,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(26,86,219,0.3) 0%, transparent 50%)" }}></div>
-        <div className="container mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center gap-8">
-          <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-            <i className={`fas ${service.icon} ${iconColor} text-4xl`}></i>
+        {service.image ? (
+          <div className="absolute inset-0 z-0">
+            <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
           </div>
+        ) : (
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(212,175,55,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(26,86,219,0.3) 0%, transparent 50%)" }}></div>
+        )}
+        <div className="container mx-auto px-4 relative z-10 flex flex-col md:flex-row items-center gap-8">
+          {!service.image && (
+            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+              <i className={`fas ${service.icon} ${iconColor} text-4xl`}></i>
+            </div>
+          )}
           <div>
             <div className="flex items-center gap-3 mb-3">
               <span className="bg-white/10 backdrop-blur border border-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-brand-gold">

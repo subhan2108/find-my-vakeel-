@@ -62,6 +62,7 @@ export default function AdminPage() {
     icon: 'fa-gavel',
     slug: '',
     content: '',
+    image: '',
     meta_title: '',
     meta_description: '',
     keywords: '',
@@ -237,7 +238,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         alert(editingLegalServiceId ? 'Service updated!' : 'Service created!');
-        setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' });
+        setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', image: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' });
         setEditingLegalServiceId(null);
         fetchLegalServices();
       } else {
@@ -257,11 +258,13 @@ export default function AdminPage() {
       icon: service.icon || 'fa-gavel',
       slug: service.slug || '',
       content: service.content || '',
+      image: service.image || '',
       meta_title: service.meta_title || '',
       meta_description: service.meta_description || '',
       keywords: service.keywords || '',
       schema_markup: service.schema_markup || ''
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteLegalService = async (id) => {
@@ -1048,7 +1051,7 @@ export default function AdminPage() {
                     {editingLegalServiceId ? 'Edit Legal Service' : 'Create Legal Service'}
                   </h3>
                   {editingLegalServiceId && (
-                    <button onClick={() => { setEditingLegalServiceId(null); setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' }); }} className="text-xs text-red-500 font-bold hover:underline">Cancel Edit</button>
+                    <button onClick={() => { setEditingLegalServiceId(null); setLegalServiceForm({ title: '', description: '', category_id: '', icon: 'fa-gavel', slug: '', content: '', image: '', meta_title: '', meta_description: '', keywords: '', schema_markup: '' }); }} className="text-xs text-red-500 font-bold hover:underline">Cancel Edit</button>
                   )}
                 </div>
                 <form onSubmit={handleLegalServiceSubmit} className="space-y-4">
@@ -1070,6 +1073,10 @@ export default function AdminPage() {
                   <div>
                     <label className="block text-sm font-semibold mb-1">Icon (FontAwesome Class)</label>
                     <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.icon} onChange={(e) => setLegalServiceForm({...legalServiceForm, icon: e.target.value})} placeholder="e.g. fa-divorce" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">Image URL</label>
+                    <input type="text" className="w-full border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none" value={legalServiceForm.image} onChange={(e) => setLegalServiceForm({...legalServiceForm, image: e.target.value})} placeholder="https://..." />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Slug (URL)</label>
@@ -1117,9 +1124,13 @@ export default function AdminPage() {
                     <div className="p-12 text-center text-slate-400">No services found</div>
                   ) : legalServices.map((service) => (
                     <div key={service.id} className="p-6 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-                        <i className={`fas ${service.icon}`}></i>
-                      </div>
+                      {service.image ? (
+                        <img src={service.image} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" alt="" />
+                      ) : (
+                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
+                          <i className={`fas ${service.icon}`}></i>
+                        </div>
+                      )}
                       <div className="flex-grow min-w-0">
                         <h4 className="font-bold text-brand-dark">{service.title}</h4>
                         <p className="text-xs text-slate-500">{legalCategories.find(c => c.id === service.category_id)?.label}</p>

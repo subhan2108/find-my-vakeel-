@@ -1,4 +1,4 @@
-import { getPosts, getCustomPages } from '@/lib/db';
+import { getPosts, getCustomPages, getLegalServices } from '@/lib/db';
 
 export const dynamic = 'force-dynamic'; // Ensures sitemap is always freshly generated
 export const revalidate = 0; // Disable caching for the sitemap
@@ -53,6 +53,20 @@ export default async function sitemap() {
     routes = [...routes, ...pageRoutes];
   } catch (error) {
     console.error('Error fetching custom pages for sitemap:', error);
+  }
+
+  try {
+    // Add legal services
+    const services = await getLegalServices();
+    const serviceRoutes = services.map((service) => ({
+      url: `${baseUrl}/legal-services/${service.slug || service.id}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+    routes = [...routes, ...serviceRoutes];
+  } catch (error) {
+    console.error('Error fetching legal services for sitemap:', error);
   }
 
   return routes;
