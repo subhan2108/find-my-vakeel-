@@ -147,3 +147,417 @@ html, body {
   width: 100vw;
   position: relative;
 }
+
+/* ─── Admin Link Inserter: Floating Toolbar ──────────────── */
+
+.admin-link-toolbar {
+  position: absolute;
+  z-index: 9998;
+  display: flex;
+  gap: 2px;
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(212, 175, 55, 0.2);
+  animation: adminToolbarSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+@keyframes adminToolbarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-link-toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.admin-link-toolbar-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+}
+
+.admin-link-toolbar-btn--danger {
+  color: #f87171;
+}
+
+.admin-link-toolbar-btn--danger:hover {
+  background: rgba(248, 113, 113, 0.15);
+  color: #fca5a5;
+}
+
+/* ─── Admin Link Inserter: Modal ─────────────────────────── */
+
+.admin-link-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  animation: adminBackdropFadeIn 0.2s ease;
+  padding: 16px;
+}
+
+@keyframes adminBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.admin-link-modal {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: adminModalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes adminModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-link-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-link-modal-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+
+.admin-link-modal-header h3 {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-link-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.admin-link-modal-close:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Modal Body */
+.admin-link-modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-link-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-link-selected-text {
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  word-break: break-all;
+}
+
+.admin-link-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.admin-link-input:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.admin-link-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Checkbox */
+.admin-link-checkbox-field {
+  margin-top: 0;
+}
+
+.admin-link-checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #334155 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  margin-bottom: 4px !important;
+  user-select: none;
+}
+
+.admin-link-checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.admin-link-checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  position: relative;
+  background: #fff;
+}
+
+.admin-link-checkbox-label input[type="checkbox"]:checked + .admin-link-checkbox-custom {
+  background: #d4af37;
+  border-color: #d4af37;
+}
+
+.admin-link-checkbox-label input[type="checkbox"]:checked + .admin-link-checkbox-custom::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.admin-link-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Preview */
+.admin-link-preview {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.admin-link-preview label {
+  margin-bottom: 8px;
+}
+
+.admin-link-preview-code {
+  display: block;
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+  font-size: 11px;
+  color: #3b82f6;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  padding: 8px 10px;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+/* Modal Footer */
+.admin-link-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #f1f5f9;
+  gap: 8px;
+}
+
+.admin-link-modal-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.admin-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.admin-link-btn--primary {
+  background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #d4af37 100%);
+  background-size: 200% auto;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.admin-link-btn--primary:hover:not(:disabled) {
+  background-position: 100% center;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-link-btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-link-btn--secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.admin-link-btn--secondary:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.admin-link-btn--danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.admin-link-btn--danger:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ─── Responsive: Mobile ─────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .admin-link-toolbar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    top: auto !important;
+    transform: translateX(-50%);
+    animation: adminToolbarSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes adminToolbarSlideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .admin-link-modal {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    animation: adminModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes adminModalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .admin-link-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .admin-link-modal-footer {
+    flex-wrap: wrap;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AdminLinkInserter from '@/components/AdminLinkInserter';
 
 export default function AdminPage() {
   const [posts, setPosts] = useState([]);
@@ -577,6 +578,7 @@ export default function AdminPage() {
 
   return (
     <main className="pt-32 pb-20 bg-slate-50 min-h-screen">
+      <AdminLinkInserter />
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-12">
