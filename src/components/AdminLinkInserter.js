@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 /**
  * AdminLinkInserter — Universal hyperlink insert/edit/remove component
  * for the admin panel. Drop this once inside the admin layout and it
- * works on every <input> and <textarea> automatically.
+ * works on every <input> and <textarea> automatically on focus/selection.
  */
 export default function AdminLinkInserter() {
   const [showToolbar, setShowToolbar] = useState(false);
@@ -34,7 +34,7 @@ export default function AdminLinkInserter() {
     if (!el) return false;
     const tag = el.tagName;
     if (tag !== 'INPUT' && tag !== 'TEXTAREA') return false;
-    // Input types that don't support text selection
+    // Input types that don't support text selection/insertion
     if (tag === 'INPUT' && !['text', 'url', 'search', 'tel', 'password'].includes(el.type)) return false;
     // Must be inside the admin page
     return !!el.closest('main');
@@ -82,119 +82,112 @@ export default function AdminLinkInserter() {
     el.dispatchEvent(new Event('input', { bubbles: true }));
   }, []);
 
-  // ─── Selection Tracking ────────────────────────────────────
-
-  const handleSelectionChange = useCallback(() => {
-    const el = document.activeElement;
-    if (!isAdminField(el)) {
-      setShowToolbar(false);
-      return;
-    }
-
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-
-    if (start === end) {
-      // No selection — check if cursor is inside an existing link
-      const anchor = parseAnchorAtCursor(el.value, start);
-      if (anchor) {
-        activeFieldRef.current = el;
-        selectionRangeRef.current = { start, end };
-        setExistingTagRange(anchor);
-        setShowToolbar(true);
-        setIsEditing(true);
-        positionToolbar(el, anchor.start, anchor.end);
-      } else {
-        setShowToolbar(false);
-        setIsEditing(false);
-        setExistingTagRange(null);
-      }
-      return;
-    }
-
-    // There is a text selection
-    activeFieldRef.current = el;
-    selectionRangeRef.current = { start, end };
-    setShowToolbar(true);
-    setIsEditing(false);
-    setExistingTagRange(null);
-    positionToolbar(el, start, end);
-  }, [isAdminField, parseAnchorAtCursor]);
-
   /**
-   * Position the floating toolbar near the selected text.
-   * For inputs/textareas we approximate using the element's bounding rect.
+   * Position the floating toolbar at the top-right of the active element.
    */
-  const positionToolbar = useCallback((el, selStart, selEnd) => {
+  const positionToolbar = useCallback((el) => {
+    if (!el) return;
     const rect = el.getBoundingClientRect();
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
-    // Create a temporary span to measure text offset (approximation)
-    const textBeforeSelection = el.value.substring(0, selStart);
-    const lines = textBeforeSelection.split('\n');
-    const lineIndex = lines.length - 1;
-    const charIndex = lines[lineIndex].length;
+    // Approximate toolbar width is ~130px. Align to top-right corner.
+    const toolbarWidth = 130;
+    let top = rect.top + scrollTop - 38; // 38px above the element
+    let left = rect.right + scrollLeft - toolbarWidth;
 
-    // Approximate character width (for monospace ~7.5px, proportional ~6.5px)
-    const computedStyle = window.getComputedStyle(el);
-    const fontSize = parseFloat(computedStyle.fontSize) || 14;
-    const isMonospace = computedStyle.fontFamily.toLowerCase().includes('mono');
-    const charWidth = isMonospace ? fontSize * 0.6 : fontSize * 0.5;
-    const lineHeight = parseFloat(computedStyle.lineHeight) || fontSize * 1.5;
-
-    const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
-    const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
-
-    let top = rect.top + scrollTop + paddingTop + (lineIndex * lineHeight) - 44;
-    let left = rect.left + scrollLeft + paddingLeft + (charIndex * charWidth);
-
-    // Clamp within viewport
+    // Clamp within viewport width
     const viewportWidth = window.innerWidth;
     if (left < 10) left = 10;
-    if (left > viewportWidth - 200) left = viewportWidth - 200;
-    if (top < scrollTop + 10) top = rect.top + scrollTop + paddingTop + ((lineIndex + 1) * lineHeight) + 8;
+    if (left > viewportWidth - 150) left = viewportWidth - 150;
+    
+    // If pushed off the top of the screen, place inside or below
+    if (rect.top < 50) {
+      top = rect.top + scrollTop + 8;
+    }
 
     setToolbarPos({ top, left });
   }, []);
 
+  // ─── Event Handling ────────────────────────────────────────
+
+  const checkState = useCallback(() => {
+    const el = document.activeElement;
+    if (!isAdminField(el)) return;
+
+    activeFieldRef.current = el;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    selectionRangeRef.current = { start, end };
+
+    const anchor = parseAnchorAtCursor(el.value, start);
+    if (anchor) {
+      setExistingTagRange(anchor);
+      setIsEditing(true);
+    } else {
+      setExistingTagRange(null);
+      setIsEditing(false);
+    }
+    setShowToolbar(true);
+    positionToolbar(el);
+  }, [isAdminField, parseAnchorAtCursor, positionToolbar]);
+
+  // Sync toolbar position when viewport changes
   useEffect(() => {
+    if (!showToolbar || !activeFieldRef.current) return;
+    const handleUpdate = () => {
+      if (activeFieldRef.current) {
+        positionToolbar(activeFieldRef.current);
+      }
+    };
+    window.addEventListener('resize', handleUpdate);
+    window.addEventListener('scroll', handleUpdate, true);
+    return () => {
+      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('scroll', handleUpdate, true);
+    };
+  }, [showToolbar, positionToolbar]);
+
+  // Listen to focus, mouseup, keyup globally to track active element selection
+  useEffect(() => {
+    const onFocusIn = (e) => {
+      if (isAdminField(e.target)) {
+        setTimeout(checkState, 10);
+      }
+    };
     const onMouseUp = () => {
-      // Small delay to let the browser finalize the selection
-      setTimeout(handleSelectionChange, 10);
+      setTimeout(checkState, 10);
     };
     const onKeyUp = (e) => {
-      // Track selection changes via keyboard (Shift+Arrow, Ctrl+A, etc.)
-      if (e.shiftKey || e.key === 'a' && (e.ctrlKey || e.metaKey)) {
-        setTimeout(handleSelectionChange, 10);
-      }
-      // Also check cursor position for existing link detection
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
-        setTimeout(handleSelectionChange, 10);
-      }
+      setTimeout(checkState, 10);
     };
     const onFocusOut = (e) => {
-      // Don't hide toolbar if clicking on the toolbar/modal itself
       setTimeout(() => {
         const active = document.activeElement;
         if (
           toolbarRef.current?.contains(active) ||
           modalRef.current?.contains(active)
         ) return;
+        
+        if (isAdminField(active)) {
+          return; // Handled by next focusin
+        }
         setShowToolbar(false);
       }, 150);
     };
 
+    document.addEventListener('focusin', onFocusIn);
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('keyup', onKeyUp);
     document.addEventListener('focusout', onFocusOut, true);
 
     return () => {
+      document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('keyup', onKeyUp);
       document.removeEventListener('focusout', onFocusOut, true);
     };
-  }, [handleSelectionChange]);
+  }, [isAdminField, checkState]);
 
   // ─── Keyboard shortcut: Ctrl+K ─────────────────────────────
 
@@ -204,15 +197,14 @@ export default function AdminLinkInserter() {
         const el = document.activeElement;
         if (isAdminField(el)) {
           e.preventDefault();
-          handleSelectionChange();
-          // If toolbar is showing, open modal
+          checkState();
           setTimeout(() => openModal(), 20);
         }
       }
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isAdminField, handleSelectionChange]);
+  }, [isAdminField, checkState]);
 
   // ─── Modal Logic ───────────────────────────────────────────
 
@@ -221,15 +213,13 @@ export default function AdminLinkInserter() {
     if (!el) return;
 
     if (isEditing && existingTagRange) {
-      // Pre-fill with existing link data
       setLinkText(existingTagRange.text);
       setLinkUrl(existingTagRange.href);
       setOpenInNewTab(existingTagRange.target === '_blank');
     } else {
       const { start, end } = selectionRangeRef.current;
       const selectedText = el.value.substring(start, end);
-      if (!selectedText && !isEditing) return; // Nothing selected
-      setLinkText(selectedText);
+      setLinkText(selectedText || '');
       setLinkUrl('');
       setOpenInNewTab(false);
     }
@@ -248,7 +238,6 @@ export default function AdminLinkInserter() {
     setOpenInNewTab(false);
     setIsEditing(false);
     setExistingTagRange(null);
-    // Refocus the original field
     activeFieldRef.current?.focus();
   }, []);
 
@@ -256,14 +245,14 @@ export default function AdminLinkInserter() {
     const el = activeFieldRef.current;
     if (!el || !linkUrl.trim()) return;
 
+    const textToInsert = linkText.trim() || 'Link';
     const targetAttr = openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
-    const anchorTag = `<a href="${linkUrl.trim()}"${targetAttr}>${linkText}</a>`;
+    const anchorTag = `<a href="${linkUrl.trim()}"${targetAttr}>${textToInsert}</a>`;
 
     const value = el.value;
     let newValue;
 
     if (isEditing && existingTagRange) {
-      // Replace the existing anchor tag
       newValue = value.substring(0, existingTagRange.start) + anchorTag + value.substring(existingTagRange.end);
     } else {
       const { start, end } = selectionRangeRef.current;
@@ -279,7 +268,6 @@ export default function AdminLinkInserter() {
     if (!el || !existingTagRange) return;
 
     const value = el.value;
-    // Replace the full anchor tag with just its inner text
     const newValue = value.substring(0, existingTagRange.start) + existingTagRange.text + value.substring(existingTagRange.end);
 
     setNativeValue(el, newValue);
@@ -300,7 +288,7 @@ export default function AdminLinkInserter() {
 
   return (
     <>
-      {/* Floating Toolbar */}
+      {/* Floating/Attached Toolbar */}
       {showToolbar && (
         <div
           ref={toolbarRef}
@@ -378,8 +366,16 @@ export default function AdminLinkInserter() {
             {/* Modal Body */}
             <div className="admin-link-modal-body">
               <div className="admin-link-field">
-                <label>Selected Text</label>
-                <div className="admin-link-selected-text">{linkText || '(no text selected)'}</div>
+                <label htmlFor="admin-link-text-input">Anchor Text (Link Text)</label>
+                <input
+                  id="admin-link-text-input"
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  placeholder="e.g. click here"
+                  className="admin-link-input"
+                  autoComplete="off"
+                />
               </div>
 
               <div className="admin-link-field">
@@ -414,7 +410,7 @@ export default function AdminLinkInserter() {
                 <div className="admin-link-preview">
                   <label>Preview</label>
                   <code className="admin-link-preview-code">
-                    {`<a href="${linkUrl.trim()}"${openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : ''}>${linkText}</a>`}
+                    {`<a href="${linkUrl.trim()}"${openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : ''}>${linkText.trim() || 'Link'}</a>`}
                   </code>
                 </div>
               )}
@@ -458,3 +454,4 @@ export default function AdminLinkInserter() {
     </>
   );
 }
+
