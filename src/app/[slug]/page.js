@@ -104,7 +104,8 @@ export default async function CustomPage({ params }) {
     .replace(/<\/body>/gi, '');
 
   // 4. Remove dynamic headings for advocate listings (e.g. Top 20 Lawyers in {City})
-  finalHtml = finalHtml.replace(/<h[1-6][^>]*>\s*Top\s+\d*\s*(?:Lawyers|Advocates)\s+in\s+[^<]*<\/h[1-6]>/gi, '');
+  finalHtml = finalHtml.replace(/<h([1-6])[^>]*>[\s\S]*?Top\s+\d*\s*(?:Lawyers|Advocates)\s+in[\s\S]*?<\/h\1>/gi, '');
+  finalHtml = finalHtml.replace(/<p[^>]*>[\s\S]*?Click Call or Chat to connect with any advocate directly\.?[\s\S]*?<\/p>/gi, '');
 
   return (
     <>
