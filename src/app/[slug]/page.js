@@ -103,6 +103,9 @@ export default async function CustomPage({ params }) {
     .replace(/<body\b[^>]*>/gi, '')
     .replace(/<\/body>/gi, '');
 
+  // 4. Remove dynamic headings for advocate listings (e.g. Top 20 Lawyers in {City})
+  finalHtml = finalHtml.replace(/<h[1-6][^>]*>\s*Top\s+\d*\s*(?:Lawyers|Advocates)\s+in\s+[^<]*<\/h[1-6]>/gi, '');
+
   return (
     <>
       {page.schema_markup && (
