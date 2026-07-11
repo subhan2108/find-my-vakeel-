@@ -647,6 +647,12 @@ export default function AdminPage() {
             >
               Legal Services
             </button>
+            <Link 
+              href="/admin/advocate-growth" 
+              className="px-6 py-2 rounded-lg font-bold bg-brand-dark text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+            >
+              Advocate Growth <i className="fas fa-external-link-alt text-[10px]"></i>
+            </Link>
           </div>
 
           {activeTab === 'posts' ? (
