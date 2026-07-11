@@ -3,7 +3,8 @@ import { updateAgService, deleteAgService, getAgServicePage, upsertAgServicePage
 
 export async function PUT(req, { params }) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const data = await req.json();
     if (!data.title || !data.slug) return NextResponse.json({ error: 'title and slug are required' }, { status: 400 });
     const service = await updateAgService(id, data);
@@ -15,7 +16,8 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     await deleteAgService(id);
     return NextResponse.json({ success: true });
   } catch (e) {
@@ -26,7 +28,8 @@ export async function DELETE(req, { params }) {
 // GET individual service page content for admin
 export async function GET(req, { params }) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const page = await getAgServicePage(id);
     return NextResponse.json(page || {});
   } catch (e) {

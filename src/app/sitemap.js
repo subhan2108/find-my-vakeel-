@@ -1,4 +1,5 @@
 import { getPosts, getCustomPages, getLegalServices } from '@/lib/db';
+import { getPublishedAgServices } from '@/lib/advocateGrowthDb';
 
 export const dynamic = 'force-dynamic'; // Ensures sitemap is always freshly generated
 export const revalidate = 0; // Disable caching for the sitemap
@@ -21,6 +22,12 @@ export default async function sitemap() {
     },
     {
       url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/advocate-growth`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -69,5 +76,20 @@ export default async function sitemap() {
     console.error('Error fetching legal services for sitemap:', error);
   }
 
+  try {
+    // Add advocate growth services
+    const agServices = await getPublishedAgServices();
+    const agRoutes = agServices.map((service) => ({
+      url: `${baseUrl}/advocate-growth/${service.slug}`,
+      lastModified: new Date(service.updated_at || new Date()),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
+    routes = [...routes, ...agRoutes];
+  } catch (error) {
+    console.error('Error fetching advocate growth services for sitemap:', error);
+  }
+
   return routes;
 }
+

@@ -15,13 +15,14 @@ export async function generateStaticParams() {
 
 // ── Metadata ─────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
+  const { slug } = await params;
   let data = null;
-  try { data = await getAgServicePageBySlug(params.slug); } catch {}
+  try { data = await getAgServicePageBySlug(slug); } catch {}
   if (!data) return { title: 'Service Not Found | Find My Vakeel' };
 
   const title = data.meta_title || `${data.title} | Advocate Growth Center | Find My Vakeel`;
   const description = data.meta_description || data.short_description || data.hero_description || '';
-  const canonical = data.canonical_url || `/advocate-growth/${params.slug}`;
+  const canonical = data.canonical_url || `/advocate-growth/${slug}`;
 
   return {
     title,
@@ -64,8 +65,9 @@ function StarRating({ rating = 5 }) {
 // PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default async function AdvocateGrowthServicePage({ params }) {
+  const { slug } = await params;
   let data = null;
-  try { data = await getAgServicePageBySlug(params.slug); } catch {}
+  try { data = await getAgServicePageBySlug(slug); } catch {}
   if (!data) notFound();
 
   const benefits   = parseJson(data.benefits);
@@ -82,7 +84,7 @@ export default async function AdvocateGrowthServicePage({ params }) {
     name: data.title,
     description: data.short_description || data.hero_description,
     provider: { '@type': 'Organization', name: 'Find My Vakeel', url: 'https://findmyvakeel.com' },
-    url: `https://findmyvakeel.com/advocate-growth/${params.slug}`,
+    url: `https://findmyvakeel.com/advocate-growth/${slug}`,
   });
 
   const faqSchema = faqs.length > 0 ? JSON.stringify({
@@ -101,7 +103,7 @@ export default async function AdvocateGrowthServicePage({ params }) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://findmyvakeel.com' },
       { '@type': 'ListItem', position: 2, name: 'Advocate Growth Center', item: 'https://findmyvakeel.com/advocate-growth' },
-      { '@type': 'ListItem', position: 3, name: data.title, item: `https://findmyvakeel.com/advocate-growth/${params.slug}` },
+      { '@type': 'ListItem', position: 3, name: data.title, item: `https://findmyvakeel.com/advocate-growth/${slug}` },
     ],
   });
 

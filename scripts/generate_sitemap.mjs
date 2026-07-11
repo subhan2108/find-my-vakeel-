@@ -33,6 +33,14 @@ async function generate() {
     }
   } catch(e) { console.log('No custom pages', e.message); }
 
+  try {
+    addUrl(`${baseUrl}/advocate-growth`, new Date(), 'weekly', 0.8);
+    const agServices = await sql`SELECT slug, updated_at FROM ag_services WHERE status = 'published' ORDER BY display_order ASC`;
+    for (const service of agServices) {
+      addUrl(`${baseUrl}/advocate-growth/${service.slug}`, new Date(service.updated_at || new Date()), 'weekly', 0.7);
+    }
+  } catch(e) { console.log('No ag services', e.message); }
+
   xml += `</urlset>`;
   
   fs.writeFileSync('./public/sitemap.xml', xml);

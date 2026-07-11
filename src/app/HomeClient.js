@@ -515,8 +515,14 @@ export default function Home() {
                 ))}
               </ul>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button onClick={() => selectUserType('lawyer')} className="btn-gold text-brand-dark px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl">Join as Lawyer Now</button>
-                <a href="https://wa.me/918261889815" className="bg-white/10 hover:bg-white/20 backdrop-blur text-white px-10 py-5 rounded-2xl font-bold flex items-center justify-center gap-3 border border-white/20">
+                <Link href="/advocate-growth" className="btn-gold text-brand-dark px-10 py-5 rounded-2xl font-bold text-lg shadow-2xl text-center flex items-center justify-center gap-2 transition-transform hover:scale-105">
+                  <span>Advocate Growth Center</span>
+                  <i className="fas fa-arrow-right"></i>
+                </Link>
+                <button onClick={() => selectUserType('lawyer')} className="bg-white/10 hover:bg-white/20 backdrop-blur text-white px-10 py-5 rounded-2xl font-bold text-lg border border-white/20 transition-transform hover:scale-105">
+                  Join as Lawyer Now
+                </button>
+                <a href="https://wa.me/918261889815" className="bg-white/10 hover:bg-white/20 backdrop-blur text-[#25D366] px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 border border-white/20 transition-transform hover:scale-105">
                   <i className="fab fa-whatsapp text-2xl"></i> Chat on WhatsApp
                 </a>
               </div>

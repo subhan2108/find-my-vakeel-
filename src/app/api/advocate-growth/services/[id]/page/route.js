@@ -4,7 +4,8 @@ import { upsertAgServicePage } from '@/lib/advocateGrowthDb';
 // POST /api/advocate-growth/services/[id]/page  -> save full page content
 export async function POST(req, { params }) {
   try {
-    const serviceId = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const serviceId = parseInt(rawId, 10);
     const data = await req.json();
     const result = await upsertAgServicePage(serviceId, data);
     return NextResponse.json(result[0] || {});

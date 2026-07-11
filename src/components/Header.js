@@ -49,12 +49,16 @@ export default function Header() {
               { label: 'Articles', href: '/blog' },
               { label: 'How It Works', href: '/#how-it-works' },
               { label: 'Testimonials', href: '/#testimonials' },
-              { label: 'About', href: '/#about' }
+              { label: 'About', href: '/#about' },
+              { label: 'For Advocates', href: '/advocate-growth', isSpecial: true }
             ].map((link) => (
               <Link 
                 key={link.label}
                 href={link.href} 
-                className={`px-2 xl:px-3 py-2 font-semibold text-sm transition-all rounded-full whitespace-nowrap hover:bg-white/10 ${displayScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`}
+                className={link.isSpecial 
+                  ? `px-3 py-1.5 font-bold text-xs uppercase tracking-wider transition-all rounded-full border whitespace-nowrap bg-brand-gold/10 border-brand-gold/40 text-brand-gold hover:bg-brand-gold hover:text-brand-dark ml-1`
+                  : `px-2 xl:px-3 py-2 font-semibold text-sm transition-all rounded-full whitespace-nowrap hover:bg-white/10 ${displayScrolled ? 'text-slate-700 hover:text-brand-blue' : 'text-white hover:text-brand-gold'}`
+                }
               >
                 {link.label}
               </Link>
@@ -97,15 +101,22 @@ export default function Header() {
             { label: 'How It Works', href: '/#how-it-works', icon: 'fa-info-circle' },
             { label: 'Testimonials', href: '/#testimonials', icon: 'fa-star' },
             { label: 'About Us', href: '/#about', icon: 'fa-building' },
-            { label: 'Contact Us', href: '/#contact', icon: 'fa-envelope' }
+            { label: 'Contact Us', href: '/#contact', icon: 'fa-envelope' },
+            { label: 'For Advocates', href: '/advocate-growth', icon: 'fa-user-tie', isSpecial: true }
           ].map((link) => (
             <Link 
               key={link.label}
               href={link.href} 
-              className="text-white text-lg font-bold p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 transition-all active:scale-95"
+              className={link.isSpecial
+                ? "text-white text-lg font-bold p-4 bg-brand-gold/10 border-2 border-brand-gold/40 rounded-2xl flex items-center gap-4 transition-all active:scale-95"
+                : "text-white text-lg font-bold p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 transition-all active:scale-95"
+              }
               onClick={() => setIsMenuOpen(false)}
             >
-              <div className="w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center text-brand-gold">
+              <div className={link.isSpecial
+                ? "w-10 h-10 bg-brand-gold rounded-xl flex items-center justify-center text-brand-dark font-bold shadow-md shadow-brand-gold/30"
+                : "w-10 h-10 bg-brand-gold/20 rounded-xl flex items-center justify-center text-brand-gold"
+              }>
                 <i className={`fas ${link.icon}`}></i>
               </div>
               {link.label}
